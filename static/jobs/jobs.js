@@ -331,7 +331,6 @@ async function startJob(){
   const rtsp_buffer_size = parseInt(document.getElementById('rtsp_buffer_size').value) || 1;
   const rtsp_reconnect_delay = parseFloat(document.getElementById('rtsp_reconnect_delay').value) || 3.0;
   const rtsp_read_timeout = parseFloat(document.getElementById('rtsp_read_timeout').value) || 5.0;
-  const rtsp_cv2_backend = document.getElementById('rtsp_cv2_backend').value;
 
   const shop_id_val = document.getElementById('shop-id').value.trim();
   const shop_id = shop_id_val || null;
@@ -343,7 +342,7 @@ async function startJob(){
       body:JSON.stringify({
         camera_id, model, conf, iou,
         rtsp_width, rtsp_height, rtsp_fps, rtsp_buffer_size,
-        rtsp_reconnect_delay, rtsp_read_timeout, rtsp_cv2_backend,
+        rtsp_reconnect_delay, rtsp_read_timeout,
         tracker_file,
         line_coords: currentLineCoords,
         shop_id

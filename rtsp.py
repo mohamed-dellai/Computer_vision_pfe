@@ -2,10 +2,15 @@ import threading
 import time
 import cv2
 import numpy as np
+import os
+
+# Force TCP for RTSP to prevent packet loss, stuttering, and smearing over UDP
+# stimeout (in microseconds) prevents indefinite hangs if the camera drops silently
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;5000000"
 
 class RTSPVideoStream(threading.Thread):
     def __init__(self, rtsp_url, width=None, height=None, fps=15, reconnect_delay=3.0, 
-                 buffer_size=1, read_timeout=5.0, cv2_backend=None):
+                 buffer_size=1, read_timeout=5.0):
         super().__init__(daemon=True)
         self.rtsp_url = rtsp_url
         self.width = int(width) if width else None
@@ -14,12 +19,12 @@ class RTSPVideoStream(threading.Thread):
         self.reconnect_delay = reconnect_delay
         self.buffer_size = int(buffer_size)
         self.read_timeout = read_timeout
-        self.cv2_backend = cv2_backend
 
         self._stop_event = threading.Event()
-        self._lock = threading.Lock()
+        self._condition = threading.Condition()
         
         self.latest_frame = None
+        self.frame_count = 0
         self.is_connected = False
         self._cap = None
 
@@ -50,9 +55,11 @@ class RTSPVideoStream(threading.Thread):
                 ):
                     frame = cv2.resize(frame, (self.width, self.height))
 
-                with self._lock:
+                with self._condition:
                     self.latest_frame = frame.copy()
+                    self.frame_count += 1
                     self.is_connected = True
+                    self._condition.notify_all()
                 
             except Exception as e:
                 print(f"RTSP loop error: {e}")
@@ -65,26 +72,13 @@ class RTSPVideoStream(threading.Thread):
     def _connect(self):
         print(f"Connecting to RTSP: {self.rtsp_url}")
         try:
-            # Map string backend to cv2 constant if provided
-            backend_const = None
-            if self.cv2_backend:
-                backend_map = {
-                    'FFMPEG': cv2.CAP_FFMPEG,
-                    'GSTREAMER': cv2.CAP_GSTREAMER,
-                    'DSHOW': cv2.CAP_DSHOW,
-                    'MSMF': cv2.CAP_MSMF,
-                }
-                backend_const = backend_map.get(self.cv2_backend)
-
-            if backend_const is not None:
-                self._cap = cv2.VideoCapture(self.rtsp_url, backend_const)
-            else:
-                self._cap = cv2.VideoCapture(self.rtsp_url)
+            # Force FFMPEG backend for best RTSP stability
+            self._cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
             
             if self._cap.isOpened():
                 # Set buffer size to minimize latency
                 self._cap.set(cv2.CAP_PROP_BUFFERSIZE, self.buffer_size)
-                print(f"RTSP connected: {self.rtsp_url} (buffer_size={self.buffer_size}, backend={self.cv2_backend or 'default'})")
+                print(f"RTSP connected: {self.rtsp_url} (buffer_size={self.buffer_size}, backend=FFMPEG)")
             else:
                 print(f"Failed to open RTSP: {self.rtsp_url}")
         except Exception as e:
@@ -92,10 +86,9 @@ class RTSPVideoStream(threading.Thread):
             self._cap = None
 
     def _disconnect(self):
-        self.is_connected = False
-        with self._lock:
-
-            pass
+        with self._condition:
+            self.is_connected = False
+            self._condition.notify_all()
             
         if self._cap:
             try:
@@ -104,18 +97,29 @@ class RTSPVideoStream(threading.Thread):
                 pass
             self._cap = None
 
-    def read(self, timeout=None):
+    def read(self, timeout=None, last_frame_id=-1):
         """
-        Returns the latest frame. 
-        If timeout is provided, waits up to timeout seconds for a frame to exist.
+        Returns (latest_frame, frame_id). 
+        If timeout is provided, waits up to timeout seconds for a new frame 
+        (where frame_id > last_frame_id) to exist.
         """
         start = time.time()
-        while timeout is None or (time.time() - start) < timeout:
-            with self._lock:
-                if self.latest_frame is not None:
-                    return self.latest_frame.copy()
-            time.sleep(0.01)
-        return None
+        with self._condition:
+            while self.frame_count <= last_frame_id or self.latest_frame is None:
+                if self._stop_event.is_set():
+                    return None, last_frame_id
+                    
+                if timeout is not None:
+                    elapsed = time.time() - start
+                    if elapsed >= timeout:
+                        return None, last_frame_id
+                    self._condition.wait(timeout - elapsed)
+                else:
+                    self._condition.wait()
+                    
+            if self.latest_frame is not None:
+                return self.latest_frame.copy(), self.frame_count
+            return None, last_frame_id
 
     def stop(self):
         self._stop_event.set()

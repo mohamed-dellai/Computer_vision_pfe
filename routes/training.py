@@ -290,7 +290,8 @@ def create_training_blueprint(store, runner, autodistill_service=None, cameras=N
         data = request.json or {}
         prompt_value = data.get("prompt")
         try:
-            prompt_terms = _parse_prompt_terms(prompt_value)
+            # We explicitly split by commas and strip to clean up input like "person, car"
+            prompt_terms = [t.strip() for t in prompt_value.split(",")] if prompt_value else []
             box_threshold = _parse_threshold(data.get("box_threshold"), "box_threshold", default=0.35)
             text_threshold = _parse_threshold(data.get("text_threshold"), "text_threshold", default=0.25)
             replace_existing = _to_bool(data.get("replace_existing"), default=False)

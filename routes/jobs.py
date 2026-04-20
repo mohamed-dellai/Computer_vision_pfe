@@ -84,13 +84,17 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         def generator():
             worker = j['worker']
             import time
+            last_frame_id = -1
             while worker.is_running():
-                frame = getattr(worker, 'latest_jpeg', None)
+                if hasattr(worker, 'read_jpeg'):
+                    frame, last_frame_id = worker.read_jpeg(timeout=1.0, last_frame_id=last_frame_id)
+                else:
+                    frame = getattr(worker, 'latest_jpeg', None)
+                    time.sleep(0.05)
+                
                 if frame:
                     yield (b'--frame\r\n'
                         b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-                else:
-                    time.sleep(0.05)
             yield b''
         return Response(generator(), mimetype='multipart/x-mixed-replace; boundary=frame')
 

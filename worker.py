@@ -10,7 +10,11 @@ class TrackingWorker(threading.Thread):
         self.config = config
         self._stop_event = threading.Event()
         self.status = "created"
+        
+        self._jpeg_condition = threading.Condition()
         self.latest_jpeg = None
+        self.jpeg_frame_id = 0
+        
         self.stats = {
             'total_unique': 0,
             'class_counts': {},
@@ -38,14 +42,14 @@ class TrackingWorker(threading.Thread):
             fps=rtsp_cfg.fps,
             reconnect_delay=rtsp_cfg.reconnect_delay,
             buffer_size=rtsp_cfg.buffer_size,
-            read_timeout=rtsp_cfg.read_timeout,
-            cv2_backend=rtsp_cfg.cv2_backend,
+            read_timeout=rtsp_cfg.read_timeout
         )
 
         try:
             stream.start()
+            last_frame_id = -1
             while not self._stop_event.is_set():
-                im0 = stream.read(timeout=rtsp_cfg.read_timeout)
+                im0, last_frame_id = stream.read(timeout=rtsp_cfg.read_timeout, last_frame_id=last_frame_id)
                 if im0 is None:
                     print("No frame received from stream, retrying...")
                     time.sleep(0.2)
@@ -55,7 +59,10 @@ class TrackingWorker(threading.Thread):
                 self.stats = self.processor.stats
                 ok, jpeg = cv2.imencode('.jpg', annotated_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
                 if ok:
-                    self.latest_jpeg = jpeg.tobytes()
+                    with self._jpeg_condition:
+                        self.latest_jpeg = jpeg.tobytes()
+                        self.jpeg_frame_id += 1
+                        self._jpeg_condition.notify_all()
 
         except Exception as e:
             self.status = f"error: {e}"
@@ -74,6 +81,23 @@ class TrackingWorker(threading.Thread):
 
     def stop(self):
         self._stop_event.set()
+        with self._jpeg_condition:
+            self._jpeg_condition.notify_all()
+
+    def read_jpeg(self, timeout=None, last_frame_id=-1):
+        start = time.time()
+        with self._jpeg_condition:
+            while self.jpeg_frame_id <= last_frame_id:
+                if self._stop_event.is_set():
+                    return None, last_frame_id
+                if timeout is not None:
+                    elapsed = time.time() - start
+                    if elapsed >= timeout:
+                        return None, last_frame_id
+                    self._jpeg_condition.wait(timeout - elapsed)
+                else:
+                    self._jpeg_condition.wait()
+            return self.latest_jpeg, self.jpeg_frame_id
 
     def is_running(self):
         return self.status == 'running'

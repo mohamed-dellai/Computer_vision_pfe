@@ -9,7 +9,6 @@ class RTSPConfig:
     reconnect_delay: float = 3.0
     buffer_size: int = 1
     read_timeout: float = 5.0
-    cv2_backend: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'RTSPConfig':
@@ -24,8 +23,7 @@ class RTSPConfig:
             fps=int(data.get('rtsp_fps', 15)),
             reconnect_delay=float(data.get('rtsp_reconnect_delay', 3.0)),
             buffer_size=int(data.get('rtsp_buffer_size', 1)),
-            read_timeout=float(data.get('rtsp_read_timeout', 5.0)),
-            cv2_backend=data.get('rtsp_cv2_backend')
+            read_timeout=float(data.get('rtsp_read_timeout', 5.0))
         )
 
 @dataclass
@@ -72,7 +70,6 @@ class JobConfig:
             'rtsp_reconnect_delay': self.rtsp_config.reconnect_delay,
             'rtsp_buffer_size': self.rtsp_config.buffer_size,
             'rtsp_read_timeout': self.rtsp_config.read_timeout,
-            'rtsp_cv2_backend': self.rtsp_config.cv2_backend,
             # Only tracker file path
             'tracker_file': self.tracker_config.tracker_file,
         }

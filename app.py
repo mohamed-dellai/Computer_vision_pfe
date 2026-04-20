@@ -2,8 +2,14 @@ from flask import Flask
 from worker import TrackingWorker
 from config import RTSPConfig, TrackerConfig, JobConfig
 import os
+import sys
 import threading
 import persistence
+
+print(f"==================================================")
+print(f"STARTING SERVER WITH PYTHON EXECUTABLE:")
+print(f"-> {sys.executable}")
+print(f"==================================================")
 
 # Import blueprint creators
 from routes.cameras import create_cameras_blueprint

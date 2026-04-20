@@ -1,53 +1,13 @@
 {
   "cameras": {
-    "41e2ab81-8ca8-4d81-be9f-1ed5b3350bb9": {
-      "name": "mo",
-      "rtsp": "rtsp://admn:a;ld@192.215.5.5:554/1"
-    },
-    "3fdc71cc-f138-4b6c-8954-af3961248645": {
-      "name": "camra hik",
-      "rtsp": "rtsp://admin:dellai12@192.168.1.87:554/1"
-    },
-    "99207aa3-aeae-467f-b51f-4708a133ff8d": {
-      "name": "camera1",
-      "rtsp": "rtsp://admin:dellai12@192.168.0.57:554/1"
-    },
-    "9f2bfaa0-5c6c-45f8-bf27-2ec2da5ff5a4": {
-      "name": "test",
-      "rtsp": "rtsp://192.168.1.82:554/stream"
-    },
-    "4c4f828a-b640-4c7b-a055-d8d785e4ce55": {
-      "name": "fc",
-      "rtsp": "rtsp://192.168.1.76:8080/h264.sdp"
-    },
-    "7080dc07-8b92-498b-a2fc-bdb3db0812bd": {
-      "name": "rf",
-      "rtsp": "rtsp://test:test@192.168.1.76:8080/h264.sdp"
-    },
-    "3e78297c-b00e-4895-978d-ec72024c1962": {
-      "name": "new cam",
-      "rtsp": "rtsp://192.168.1.80:8080/h264.sdp"
-    },
-    "a05c4556-e01d-4050-b17e-e8cef3f85756": {
-      "name": "hello",
+    "1b049399-7d3e-41dc-8acf-813da2b2e078": {
+      "name": "first test",
       "rtsp": "rtsp://test:test@192.168.1.80:8080/h264.sdp"
+    },
+    "52b573a7-2f40-4c58-bd9b-5f0c690c7d48": {
+      "name": "white cup",
+      "rtsp": "rtsp://test:test@192.168.1.76:8080/h264.sdp"
     }
   },
-  "jobs": {
-    "538cb247-fd44-4c8e-b04b-f38f451542d6": {
-      "camera_id": "a05c4556-e01d-4050-b17e-e8cef3f85756",
-      "model": "yolov8n.pt",
-      "conf": 0.25,
-      "iou": 0.7,
-      "line_coords": null,
-      "rtsp_width": 640,
-      "rtsp_height": 640,
-      "rtsp_fps": 15,
-      "rtsp_reconnect_delay": 3.0,
-      "rtsp_buffer_size": 1,
-      "rtsp_read_timeout": 5.0,
-      "rtsp_cv2_backend": "",
-      "tracker_file": "C:\\work\\computer vision\\server\\trackers\\fr.yml"
-    }
-  }
+  "jobs": {}
 }

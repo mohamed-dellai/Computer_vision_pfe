@@ -64,6 +64,8 @@ class VideoProcessor:
                 cv2.putText(annotated_frame, "B", (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
             for result in results:
+               
+
                 # Plot/annotate first, then pass annotated frame so events include overlays
                 annotated_frame = result.plot()
                 self._update_stats(result, annotated_frame)
@@ -190,12 +192,21 @@ class VideoProcessor:
         intersect = ccw(p1, l1, l2) != ccw(p2, l1, l2) and ccw(p1, p2, l1) != ccw(p1, p2, l2)
         
         if intersect:
-            # Determine direction using position of p1 relative to the line.
-            # Value = (x2 - x1)(y - y1) - (y2 - y1)(x - x1)
-            val1 = (x2 - x1)*(p1[1] - y1) - (y2 - y1)*(p1[0] - x1)
+            # We determine direction based on whether the object moved 
+            # generally "downwards" (In) or "upwards" (Out) relative to the screen.
+            # You can easily swap these if your camera is upside down!
+            y_movement = p2[1] - p1[1]
             
-            # Arbitrary convention: Positive val1 means "In", Negative means "Out"
-            return 'in' if val1 > 0 else 'out'
+            # If the object moved downwards (positive Y on screen), it's "In"
+            if y_movement > 0:
+                return 'in'
+            # If the object moved upwards (negative Y on screen), it's "Out"
+            elif y_movement < 0:
+                return 'out'
+            else:
+                # If they moved perfectly horizontal, use X movement
+                x_movement = p2[0] - p1[0]
+                return 'in' if x_movement > 0 else 'out'
             
         return None
 

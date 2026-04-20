@@ -3,7 +3,7 @@ data/
 models/
 *.pt
 *.onnx
-
+*.whl
 # Python cache/bytecode
 __pycache__/
 *.py[cod]

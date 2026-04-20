@@ -52,17 +52,20 @@ def create_cameras_blueprint(cameras, jobs, jobs_lock):
         
         try:
             # Wait up to 5 seconds for a frame
-            frame = stream.read(timeout=5.0)
+            frame, _ = stream.read(timeout=5.0)
                 
             if frame is None:
-                return jsonify({'error': 'failed to grab frame'}), 500
+                print(f"Snapshot failed: timeout or no frame received from {rtsp_url}")
+                return jsonify({'error': 'failed to grab frame (timeout or connection failed)'}), 500
                 
             ok, buf = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
             if not ok:
+                print(f"Snapshot failed: could not encode frame from {rtsp_url} to JPEG")
                 return jsonify({'error': 'failed to encode frame'}), 500
                 
             return Response(buf.tobytes(), mimetype='image/jpeg')
         except Exception as e:
+            print(f"Snapshot exception: {e}")
             return jsonify({'error': str(e)}), 500
         finally:
             stream.stop()
@@ -88,9 +91,10 @@ def create_cameras_blueprint(cameras, jobs, jobs_lock):
         def generator():
             stream = RTSPVideoStream(rtsp_url, **rtsp_kwargs)
             stream.start()
+            last_frame_id = -1
             try:
                 while True:
-                    frame = stream.read(timeout=0.5)
+                    frame, last_frame_id = stream.read(timeout=0.5, last_frame_id=last_frame_id)
                     if frame is None:
                         if not stream.is_alive():
                             break

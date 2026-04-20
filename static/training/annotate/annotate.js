@@ -227,10 +227,6 @@ function setAutodistillStatus(message) {
   autodistillStatusEl.textContent = message;
 }
 
-function setAutodistillRunEnabled(enabled) {
-  autodistillRunBtnEl.disabled = !enabled;
-}
-
 async function refreshAutodistillStatus() {
   try {
     const data = await t.api("/training/autodistill/status");
@@ -259,8 +255,25 @@ async function refreshAutodistillStatus() {
     setAutodistillRunEnabled(true);
   } catch (e) {
     state.autodistillAvailable = false;
-    setAutodistillStatus(e.message);
+    setAutodistillStatus(e.message || "Failed to connect to autodistill service");
     setAutodistillRunEnabled(false);
+  }
+}
+
+function setAutodistillStatus(msg) {
+  if (autodistillStatusEl) autodistillStatusEl.textContent = msg;
+}
+
+function setAutodistillRunEnabled(enabled) {
+  // We keep the button enabled so the user can click it and see the error message
+  if (autodistillRunBtnEl) {
+    if (state.autodistillRunning) {
+      autodistillRunBtnEl.disabled = true;
+      autodistillRunBtnEl.textContent = "Running...";
+    } else {
+      autodistillRunBtnEl.disabled = false;
+      autodistillRunBtnEl.textContent = "Run AutoDistill";
+    }
   }
 }
 
@@ -285,10 +298,13 @@ function collectAutodistillImageIds(scope) {
   return [state.selectedImageId];
 }
 
-async function onRunAutodistill() {
+async function onRunAutodistill(e) {
+  if (e) e.preventDefault();
+
   if (state.autodistillRunning) return;
   if (!state.autodistillAvailable) {
-    t.notify("autodistill service is not available");
+    const msg = autodistillStatusEl ? autodistillStatusEl.textContent : "autodistill service is not available";
+    t.notify(msg);
     return;
   }
   if (!state.selectedDatasetId) return t.notify("select a dataset first");
@@ -316,7 +332,7 @@ async function onRunAutodistill() {
     return t.notify("select at least one class for AutoDistill");
   }
   const prompt = useSelectedPrompt
-    ? selectedClasses.map((cls) => cls.name).join(", ")
+    ? selectedClasses.map((cls) => cls.name).join(",") // Fix: Remove space after comma for better backend parsing
     : autodistillPromptEl.value.trim();
   if (!useSelectedPrompt && !prompt) {
     return t.notify("prompt is required");
@@ -674,7 +690,7 @@ function syncAutodistillPromptFromClasses() {
   autodistillPromptEl.readOnly = useSelectedPrompt;
   if (useSelectedPrompt) {
     const classNames = getSelectedAutodistillClasses().map((cls) => cls.name);
-    autodistillPromptEl.value = classNames.join(", ");
+    autodistillPromptEl.value = classNames.join(","); // Remove space for proper backend mapping
   }
 }
 

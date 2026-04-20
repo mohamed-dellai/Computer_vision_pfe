@@ -6,7 +6,7 @@ import cv2
 
 
 class _GroundingDinoOnlyProvider:
-    def __init__(self, ontology, box_threshold: float = 0.35, text_threshold: float = 0.25):
+    def __init__(self, ontology, box_threshold: float , text_threshold: float):
         self.ontology = ontology
         self.box_threshold = box_threshold
         self.text_threshold = text_threshold
@@ -104,6 +104,12 @@ class GroundedSam2AutodistillService:
                 if annotations:
                     labeled_images += 1
             except Exception as exc:
+                print(f"=========================================")
+                print(f"AUTODISTILL PREDICTION ERROR on image {image_id}:")
+                print(f"{type(exc).__name__}: {exc}")
+                import traceback
+                traceback.print_exc()
+                print(f"=========================================")
                 annotations_by_image[image_id] = []
                 errors.append({"image_id": image_id, "error": str(exc)})
 
