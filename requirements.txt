@@ -37,6 +37,7 @@ urllib3
 autodistill
 autodistill-grounding-dino
 autodistill-grounded-sam
+transformers
 scikit-learn
 roboflow
 flask

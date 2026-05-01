@@ -7,6 +7,18 @@
     "52b573a7-2f40-4c58-bd9b-5f0c690c7d48": {
       "name": "white cup",
       "rtsp": "rtsp://test:test@192.168.1.76:8080/h264.sdp"
+    },
+    "c5273b28-11b9-4954-9633-f6fea6186126": {
+      "name": "phone",
+      "rtsp": "rtsp://test:test@192.168.100.194:8080/h264.sdp"
+    },
+    "898efa12-470e-479f-be55-28e50159776d": {
+      "name": "d",
+      "rtsp": "rtsp://test:test@192.168.100.194:8080/h264.sdp"
+    },
+    "1af5f3db-7f4d-4bc4-bafa-88dd4562210c": {
+      "name": "COFFE",
+      "rtsp": "rtsp://admin:VBTGBJ@192.168.9.103:554/stream"
     }
   },
   "jobs": {}

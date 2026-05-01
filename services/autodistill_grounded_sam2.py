@@ -1,5 +1,6 @@
 import importlib
 import threading
+import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
@@ -42,6 +43,10 @@ class GroundedSam2AutodistillService:
         self._model_cache = {}
         self._caption_ontology_cls = None
 
+    @staticmethod
+    def _debug(message: str):
+        print(f"[AUTODISTILL DEBUG] {message}")
+
     def availability(self) -> Dict[str, object]:
         try:
             self._ensure_caption_ontology()
@@ -50,7 +55,7 @@ class GroundedSam2AutodistillService:
                 "available": True,
                 "provider": provider_name,
                 "default_provider": self.DEFAULT_PROVIDER,
-                "providers": ["dino", "grounded_sam", "grounded_sam2", "auto"],
+                "providers": ["dino"],
             }
         except Exception as exc:
             return {"available": False, "error": str(exc)}
@@ -73,15 +78,19 @@ class GroundedSam2AutodistillService:
                 "errors": [],
             }
 
+        self._debug(
+            f"run called with provider={provider}, images={len(image_items)}, "
+            f"ontology_terms={len(ontology_map)}, class_ids={len(ontology_class_ids)}"
+        )
         self._ensure_caption_ontology()
         provider_cls, provider_name = self._resolve_provider(provider)
+        self._debug(f"resolved provider -> {provider_name} ({provider_cls.__name__})")
         model = self._get_model(
             provider_cls=provider_cls,
             provider_name=provider_name,
             ontology_map=ontology_map,
             box_threshold=box_threshold,
             text_threshold=text_threshold,
-            allow_fallback=(provider == "auto"),
         )
 
         annotations_by_image = {}
@@ -142,53 +151,15 @@ class GroundedSam2AutodistillService:
 
     def _resolve_provider(self, provider: str):
         normalized = (provider or self.DEFAULT_PROVIDER).strip().lower()
-        if normalized not in {"dino", "grounded_sam", "grounded_sam2", "auto"}:
-            raise ValueError("provider must be one of: dino, grounded_sam, grounded_sam2, auto")
+        self._debug(f"resolving provider '{normalized}'")
+        if normalized != "dino":
+            raise ValueError("provider must be: dino")
 
-        if normalized == "dino":
-            try:
-                importlib.import_module("autodistill_grounded_sam.helpers")
-                return _GroundingDinoOnlyProvider, "autodistill_grounding_dino.local_adapter"
-            except Exception as exc:
-                raise RuntimeError(f"GroundingDINO provider is unavailable: {exc}") from exc
-
-        if normalized == "grounded_sam":
-            return self._resolve_first([
-                ("autodistill_grounded_sam", "GroundedSAM"),
-            ], "GroundedSAM provider is unavailable")
-
-        if normalized == "grounded_sam2":
-            return self._resolve_first([
-                ("autodistill_grounded_sam_2", "GroundedSAM2"),
-                ("autodistill_grounded_sam2", "GroundedSAM2"),
-            ], "GroundedSAM2 provider is unavailable")
-
-        # auto
-        return self._resolve_first([
-            ("autodistill_grounded_sam", "GroundedSAM"),
-            ("autodistill_grounded_sam_2", "GroundedSAM2"),
-            ("autodistill_grounded_sam2", "GroundedSAM2"),
-        ], "no provider available for auto", include_dino_fallback=True)
-
-    def _resolve_first(self, candidates, not_found_error: str, include_dino_fallback: bool = False):
-        errors = []
-        for module_name, class_name in candidates:
-            try:
-                module = importlib.import_module(module_name)
-                provider_cls = getattr(module, class_name, None)
-                if provider_cls is None:
-                    continue
-                return provider_cls, f"{module_name}.{class_name}"
-            except Exception as exc:
-                errors.append(f"{module_name}.{class_name}: {exc}")
-        if include_dino_fallback:
-            try:
-                importlib.import_module("autodistill_grounded_sam.helpers")
-                return _GroundingDinoOnlyProvider, "autodistill_grounding_dino.local_adapter"
-            except Exception as exc:
-                errors.append(f"autodistill_grounding_dino.local_adapter: {exc}")
-        details = "; ".join(errors[:3]) if errors else "module/class not found"
-        raise RuntimeError(f"{not_found_error} ({details})")
+        try:
+            importlib.import_module("autodistill_grounded_sam.helpers")
+            return _GroundingDinoOnlyProvider, "autodistill_grounding_dino.local_adapter"
+        except Exception as exc:
+            raise RuntimeError(f"GroundingDINO provider is unavailable: {exc}") from exc
 
     def _get_model(
         self,
@@ -197,7 +168,6 @@ class GroundedSam2AutodistillService:
         ontology_map: Dict[str, str],
         box_threshold: float,
         text_threshold: float,
-        allow_fallback: bool,
     ):
         key = (
             provider_name,
@@ -215,7 +185,6 @@ class GroundedSam2AutodistillService:
                 ontology_map=ontology_map,
                 box_threshold=box_threshold,
                 text_threshold=text_threshold,
-                allow_fallback=allow_fallback,
             )
             self._model_cache[key] = model
             return model
@@ -227,7 +196,6 @@ class GroundedSam2AutodistillService:
         ontology_map: Dict[str, str],
         box_threshold: float,
         text_threshold: float,
-        allow_fallback: bool,
     ):
         ontology = self._caption_ontology_cls(ontology_map)
 
@@ -240,59 +208,24 @@ class GroundedSam2AutodistillService:
         last_exc = None
         for kwargs in init_variants:
             try:
+                self._debug(f"initializing provider {provider_name} with args={list(kwargs.keys())}")
                 return provider_cls(**kwargs)
             except TypeError as exc:
+                self._debug(
+                    f"provider init TypeError for {provider_name} with args={list(kwargs.keys())}: {exc}"
+                )
                 last_exc = exc
                 continue
             except Exception as exc:
-                # GroundedSAM2 often fails at runtime on missing optional deps (e.g. flash_attn).
-                # Try a stable fallback provider when available.
-                if allow_fallback:
-                    fallback_model = self._try_groundedsam_fallback(
-                        ontology_map, box_threshold, text_threshold
-                    )
-                    if fallback_model is not None:
-                        return fallback_model
-                message = str(exc)
-                if "flash_attn" in message:
-                    raise RuntimeError(
-                        "GroundedSAM2 failed because 'flash_attn' is missing in this environment. "
-                        "On Windows this is commonly unsupported; use GroundedSAM fallback or run "
-                        "GroundedSAM2 in a Linux/CUDA environment."
-                    ) from exc
+                self._debug(
+                    f"provider init failed for {provider_name} with args={list(kwargs.keys())}: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+                self._debug(traceback.format_exc())
                 raise RuntimeError(f"failed to initialize provider {provider_name}: {exc}") from exc
         if last_exc:
             raise RuntimeError(f"failed to initialize provider {provider_name}: {last_exc}") from last_exc
-        raise RuntimeError("failed to initialize grounded sam provider")
-
-    def _try_groundedsam_fallback(
-        self,
-        ontology_map: Dict[str, str],
-        box_threshold: float,
-        text_threshold: float,
-    ):
-        try:
-            module = importlib.import_module("autodistill_grounded_sam")
-            fallback_cls = getattr(module, "GroundedSAM", None)
-            if fallback_cls is None:
-                return None
-        except Exception:
-            return None
-
-        ontology = self._caption_ontology_cls(ontology_map)
-        init_variants = [
-            {"ontology": ontology, "box_threshold": box_threshold, "text_threshold": text_threshold},
-            {"ontology": ontology, "box_threshold": box_threshold},
-            {"ontology": ontology},
-        ]
-        for kwargs in init_variants:
-            try:
-                return fallback_cls(**kwargs)
-            except TypeError:
-                continue
-            except Exception:
-                continue
-        return None
+        raise RuntimeError("failed to initialize grounding dino provider")
 
     def _predict_image_annotations(
         self,

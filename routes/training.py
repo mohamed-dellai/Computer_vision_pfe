@@ -296,8 +296,8 @@ def create_training_blueprint(store, runner, autodistill_service=None, cameras=N
             text_threshold = _parse_threshold(data.get("text_threshold"), "text_threshold", default=0.25)
             replace_existing = _to_bool(data.get("replace_existing"), default=False)
             provider = (data.get("provider") or "dino").strip().lower()
-            if provider not in {"dino", "grounded_sam", "grounded_sam2", "auto"}:
-                raise ValueError("provider must be one of: dino, grounded_sam, grounded_sam2, auto")
+            if provider not in {"dino", "sam3"}:
+                raise ValueError("provider must be one of: dino, sam3")
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
