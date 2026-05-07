@@ -19,6 +19,10 @@
     "1af5f3db-7f4d-4bc4-bafa-88dd4562210c": {
       "name": "COFFE",
       "rtsp": "rtsp://admin:VBTGBJ@192.168.9.103:554/stream"
+    },
+    "f196e8b2-73c6-4c3b-a992-1468975e5186": {
+      "name": "COFFE2",
+      "rtsp": "rtsp://admin:UPPCFL@192.168.9.129:554/stream"
     }
   },
   "jobs": {}

@@ -1,11 +1,12 @@
-certifi==2026.1.4
+certifi
 charset-normalizer
 contourpy
 cycler
 filelock
 fonttools
 fsspec
-idna==3.11
+idna
+einops
 Jinja2
 kiwisolver
 MarkupSafe
@@ -17,7 +18,6 @@ opencv-python
 packaging
 pillow
 polars
-polars-runtime-32
 psutil
 pyparsing
 python-dateutil
@@ -27,6 +27,7 @@ scipy
 setuptools
 six
 sympy
+timm
 torch
 torchaudio
 torchvision
@@ -37,8 +38,11 @@ urllib3
 autodistill
 autodistill-grounding-dino
 autodistill-grounded-sam
-transformers
 scikit-learn
 roboflow
 flask
-dotenv
+python-dotenv
+werkzeug
+transformers==4.41.2
+huggingface-hub>=0.23,<1.0
+tokenizers==0.19.1

@@ -10,6 +10,23 @@ DEFAULT_RECORDINGS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', 'data', 'recordings')
 )
 
+AUTODISTILL_PROVIDER_ALIASES = {
+    "dino": "dino",
+    "groundingdino": "dino",
+    "grounding_dino": "dino",
+    "yolo-world": "yolo_world",
+    "yolo_world": "yolo_world",
+    "yoloworld": "yolo_world",
+    "florence": "florence2",
+    "florence2": "florence2",
+    "florence-2": "florence2",
+    "florence_2": "florence2",
+    "owl": "owlvit",
+    "owlvit": "owlvit",
+    "owl-vit": "owlvit",
+    "owl_vit": "owlvit",
+}
+
 
 def _to_bool(value, default=False):
     if value is None:
@@ -295,9 +312,10 @@ def create_training_blueprint(store, runner, autodistill_service=None, cameras=N
             box_threshold = _parse_threshold(data.get("box_threshold"), "box_threshold", default=0.35)
             text_threshold = _parse_threshold(data.get("text_threshold"), "text_threshold", default=0.25)
             replace_existing = _to_bool(data.get("replace_existing"), default=False)
-            provider = (data.get("provider") or "dino").strip().lower()
-            if provider not in {"dino", "sam3"}:
-                raise ValueError("provider must be one of: dino, sam3")
+            provider_key = (data.get("provider") or "owlvit").strip().lower()
+            provider = AUTODISTILL_PROVIDER_ALIASES.get(provider_key, provider_key)
+            if provider not in {"owlvit", "dino", "yolo_world", "florence2"}:
+                raise ValueError("provider must be one of: owlvit, dino, yolo_world, florence2")
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 

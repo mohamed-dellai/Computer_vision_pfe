@@ -18,7 +18,7 @@ from routes.models import create_models_blueprint
 from routes.trackers import create_trackers_blueprint
 from routes.training import create_training_blueprint
 from routes.ui import create_ui_blueprint
-from services.autodistill_grounded_sam2 import GroundedSam2AutodistillService
+from services.autodistill import GroundedSam2AutodistillService
 from services.training_runner import TrainingRunner
 from services.training_store import TrainingStore
 

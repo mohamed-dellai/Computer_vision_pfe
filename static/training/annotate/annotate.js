@@ -239,17 +239,7 @@ async function refreshAutodistillStatus() {
       return;
     }
 
-    const providers = Array.isArray(data.providers) ? data.providers : null;
-    if (providers && autodistillProviderEl) {
-      Array.from(autodistillProviderEl.options).forEach((opt) => {
-        opt.disabled = !providers.includes(opt.value);
-      });
-    }
-    if (data.default_provider && autodistillProviderEl) {
-      const hasDefault = Array.from(autodistillProviderEl.options).some((o) => o.value === data.default_provider);
-      if (hasDefault) autodistillProviderEl.value = data.default_provider;
-    }
-
+    syncAutodistillProviders(data);
     const provider = data.provider ? `Provider: ${data.provider}` : "AutoDistill ready";
     setAutodistillStatus(provider);
     setAutodistillRunEnabled(true);
@@ -257,6 +247,28 @@ async function refreshAutodistillStatus() {
     state.autodistillAvailable = false;
     setAutodistillStatus(e.message || "Failed to connect to autodistill service");
     setAutodistillRunEnabled(false);
+  }
+}
+
+function syncAutodistillProviders(data) {
+  if (!autodistillProviderEl) return;
+
+  const providers = new Set(Array.isArray(data.providers) ? data.providers : []);
+  const labels = data.provider_labels || {};
+  Array.from(autodistillProviderEl.options).forEach((opt) => {
+    opt.disabled = providers.size > 0 && !providers.has(opt.value);
+    if (labels[opt.value]) {
+      opt.textContent = labels[opt.value];
+    }
+  });
+
+  const selectedOption = autodistillProviderEl.selectedOptions[0];
+  if (!selectedOption || selectedOption.disabled) {
+    const defaultProvider = data.default_provider || "owlvit";
+    const fallback = Array.from(autodistillProviderEl.options).find(
+      (opt) => !opt.disabled && opt.value === defaultProvider
+    ) || Array.from(autodistillProviderEl.options).find((opt) => !opt.disabled);
+    if (fallback) autodistillProviderEl.value = fallback.value;
   }
 }
 
@@ -340,7 +352,7 @@ async function onRunAutodistill(e) {
   if (!useSelectedPrompt && selectedClasses.length !== 1) {
     return t.notify("for custom prompt, select exactly one target class");
   }
-  const provider = (autodistillProviderEl.value || "dino").trim().toLowerCase();
+  const provider = (autodistillProviderEl?.value || "owlvit").trim().toLowerCase();
   const replaceExisting = Boolean(autodistillReplaceEl.checked);
   const payload = {
     provider,
