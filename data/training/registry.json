@@ -4367,7 +4367,7 @@
       "name": "COFFE TIME V1",
       "description": "",
       "created_at": "2026-05-07T14:06:01.893978+00:00",
-      "updated_at": "2026-05-07T15:26:26.978094+00:00",
+      "updated_at": "2026-05-10T13:02:47.722257+00:00",
       "images": {
         "76a79354-e187-4d9a-a2cb-559bb9e75d2f": {
           "id": "76a79354-e187-4d9a-a2cb-559bb9e75d2f",
@@ -11778,6 +11778,768 @@
           "filename": "c2792c17-9984-4e51-ba4f-f10906c8b72d.jpg",
           "original_name": "bottle3_20260507_143020_frame_002170.jpg",
           "uploaded_at": "2026-05-07T14:38:32.410328+00:00"
+        },
+        "55dcfde7-ecc2-444f-8b44-1f0ab305ce51": {
+          "id": "55dcfde7-ecc2-444f-8b44-1f0ab305ce51",
+          "filename": "55dcfde7-ecc2-444f-8b44-1f0ab305ce51.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000010.jpg",
+          "uploaded_at": "2026-05-07T17:24:39.785728+00:00"
+        },
+        "9eb19000-1ace-443c-952e-d28d4f889cec": {
+          "id": "9eb19000-1ace-443c-952e-d28d4f889cec",
+          "filename": "9eb19000-1ace-443c-952e-d28d4f889cec.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000020.jpg",
+          "uploaded_at": "2026-05-07T17:24:39.861606+00:00"
+        },
+        "191f86bf-904f-4ae2-848c-5f7e571945d8": {
+          "id": "191f86bf-904f-4ae2-848c-5f7e571945d8",
+          "filename": "191f86bf-904f-4ae2-848c-5f7e571945d8.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000030.jpg",
+          "uploaded_at": "2026-05-07T17:24:39.936122+00:00"
+        },
+        "0b7267c3-15ed-47e8-a236-67376e0f25a8": {
+          "id": "0b7267c3-15ed-47e8-a236-67376e0f25a8",
+          "filename": "0b7267c3-15ed-47e8-a236-67376e0f25a8.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000040.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.008834+00:00"
+        },
+        "5918948d-89fd-444a-882c-7395e5607e91": {
+          "id": "5918948d-89fd-444a-882c-7395e5607e91",
+          "filename": "5918948d-89fd-444a-882c-7395e5607e91.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000050.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.081735+00:00"
+        },
+        "de987ca2-9e42-4aab-a467-3ac11076c5df": {
+          "id": "de987ca2-9e42-4aab-a467-3ac11076c5df",
+          "filename": "de987ca2-9e42-4aab-a467-3ac11076c5df.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000070.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.228531+00:00"
+        },
+        "5b9a365a-3f85-44fd-9c4b-a4cc76d46ce4": {
+          "id": "5b9a365a-3f85-44fd-9c4b-a4cc76d46ce4",
+          "filename": "5b9a365a-3f85-44fd-9c4b-a4cc76d46ce4.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000080.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.301115+00:00"
+        },
+        "ab41d240-d084-4353-9d6c-7702266861d2": {
+          "id": "ab41d240-d084-4353-9d6c-7702266861d2",
+          "filename": "ab41d240-d084-4353-9d6c-7702266861d2.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000090.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.373581+00:00"
+        },
+        "89b8cfdd-6bd7-409d-b47d-1562cb2b53b3": {
+          "id": "89b8cfdd-6bd7-409d-b47d-1562cb2b53b3",
+          "filename": "89b8cfdd-6bd7-409d-b47d-1562cb2b53b3.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000100.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.446827+00:00"
+        },
+        "932bbf00-c5a2-48ec-b071-f97310f11643": {
+          "id": "932bbf00-c5a2-48ec-b071-f97310f11643",
+          "filename": "932bbf00-c5a2-48ec-b071-f97310f11643.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000110.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.519740+00:00"
+        },
+        "ac3df892-ace5-4066-832a-27bc945057f7": {
+          "id": "ac3df892-ace5-4066-832a-27bc945057f7",
+          "filename": "ac3df892-ace5-4066-832a-27bc945057f7.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000120.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.596664+00:00"
+        },
+        "18aa1b2c-c71e-48e3-a112-e0d9e35e9de1": {
+          "id": "18aa1b2c-c71e-48e3-a112-e0d9e35e9de1",
+          "filename": "18aa1b2c-c71e-48e3-a112-e0d9e35e9de1.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000130.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.669659+00:00"
+        },
+        "547c6a42-6563-4f2d-ac3d-fa37557ce8a5": {
+          "id": "547c6a42-6563-4f2d-ac3d-fa37557ce8a5",
+          "filename": "547c6a42-6563-4f2d-ac3d-fa37557ce8a5.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000140.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.742855+00:00"
+        },
+        "b287af75-c829-40cf-adae-e57f06d16935": {
+          "id": "b287af75-c829-40cf-adae-e57f06d16935",
+          "filename": "b287af75-c829-40cf-adae-e57f06d16935.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000150.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.816027+00:00"
+        },
+        "5f897db3-966a-4224-9168-03e17ffafec0": {
+          "id": "5f897db3-966a-4224-9168-03e17ffafec0",
+          "filename": "5f897db3-966a-4224-9168-03e17ffafec0.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000160.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.883084+00:00"
+        },
+        "f9eb22d9-6c7a-426b-be7d-ec43b42deb1f": {
+          "id": "f9eb22d9-6c7a-426b-be7d-ec43b42deb1f",
+          "filename": "f9eb22d9-6c7a-426b-be7d-ec43b42deb1f.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000170.jpg",
+          "uploaded_at": "2026-05-07T17:24:40.959530+00:00"
+        },
+        "84ccaff5-caad-4b06-9506-3096ee2d67f5": {
+          "id": "84ccaff5-caad-4b06-9506-3096ee2d67f5",
+          "filename": "84ccaff5-caad-4b06-9506-3096ee2d67f5.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000180.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.031637+00:00"
+        },
+        "d2cbc658-360b-45d9-827d-0a656c6c9470": {
+          "id": "d2cbc658-360b-45d9-827d-0a656c6c9470",
+          "filename": "d2cbc658-360b-45d9-827d-0a656c6c9470.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000190.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.104169+00:00"
+        },
+        "d0e560a0-ebe0-4588-98ef-96886909ffbc": {
+          "id": "d0e560a0-ebe0-4588-98ef-96886909ffbc",
+          "filename": "d0e560a0-ebe0-4588-98ef-96886909ffbc.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000200.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.176847+00:00"
+        },
+        "1b05d6cf-d8a5-4dcd-babe-2b1772e26fb0": {
+          "id": "1b05d6cf-d8a5-4dcd-babe-2b1772e26fb0",
+          "filename": "1b05d6cf-d8a5-4dcd-babe-2b1772e26fb0.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000210.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.251137+00:00"
+        },
+        "f4413029-8a13-4250-b234-d968ef4f4cab": {
+          "id": "f4413029-8a13-4250-b234-d968ef4f4cab",
+          "filename": "f4413029-8a13-4250-b234-d968ef4f4cab.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000220.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.322976+00:00"
+        },
+        "bcdedb2f-8901-4778-8b62-5a9db1be0030": {
+          "id": "bcdedb2f-8901-4778-8b62-5a9db1be0030",
+          "filename": "bcdedb2f-8901-4778-8b62-5a9db1be0030.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000230.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.383977+00:00"
+        },
+        "7e77012c-364f-4b39-95a7-022530ca6e7a": {
+          "id": "7e77012c-364f-4b39-95a7-022530ca6e7a",
+          "filename": "7e77012c-364f-4b39-95a7-022530ca6e7a.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000240.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.468656+00:00"
+        },
+        "da8a7955-49f1-471c-a4c0-7d830ea03741": {
+          "id": "da8a7955-49f1-471c-a4c0-7d830ea03741",
+          "filename": "da8a7955-49f1-471c-a4c0-7d830ea03741.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000250.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.541655+00:00"
+        },
+        "72671b84-a0b0-42b8-9593-4e09baabb4d2": {
+          "id": "72671b84-a0b0-42b8-9593-4e09baabb4d2",
+          "filename": "72671b84-a0b0-42b8-9593-4e09baabb4d2.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000260.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.613883+00:00"
+        },
+        "889761b2-da29-4efa-bded-84fed8b4cb9c": {
+          "id": "889761b2-da29-4efa-bded-84fed8b4cb9c",
+          "filename": "889761b2-da29-4efa-bded-84fed8b4cb9c.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000270.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.683954+00:00"
+        },
+        "489dff15-1a35-4e23-8bbf-3dcf34595cf6": {
+          "id": "489dff15-1a35-4e23-8bbf-3dcf34595cf6",
+          "filename": "489dff15-1a35-4e23-8bbf-3dcf34595cf6.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000280.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.760828+00:00"
+        },
+        "5c2ebfb7-07ad-4f83-a4ac-eba52d416b56": {
+          "id": "5c2ebfb7-07ad-4f83-a4ac-eba52d416b56",
+          "filename": "5c2ebfb7-07ad-4f83-a4ac-eba52d416b56.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000290.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.834790+00:00"
+        },
+        "dc215d5c-27a9-48df-b35e-540f58783668": {
+          "id": "dc215d5c-27a9-48df-b35e-540f58783668",
+          "filename": "dc215d5c-27a9-48df-b35e-540f58783668.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000300.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.906873+00:00"
+        },
+        "e31e5f80-fb7f-4596-970c-decf6a639547": {
+          "id": "e31e5f80-fb7f-4596-970c-decf6a639547",
+          "filename": "e31e5f80-fb7f-4596-970c-decf6a639547.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000310.jpg",
+          "uploaded_at": "2026-05-07T17:24:41.981543+00:00"
+        },
+        "b02f1f4e-bdf1-4657-b3cb-a1cc95ab9fa9": {
+          "id": "b02f1f4e-bdf1-4657-b3cb-a1cc95ab9fa9",
+          "filename": "b02f1f4e-bdf1-4657-b3cb-a1cc95ab9fa9.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000320.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.056200+00:00"
+        },
+        "8c02dd66-4aaf-49bd-b8e4-28ff4f15154f": {
+          "id": "8c02dd66-4aaf-49bd-b8e4-28ff4f15154f",
+          "filename": "8c02dd66-4aaf-49bd-b8e4-28ff4f15154f.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000330.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.131524+00:00"
+        },
+        "55568648-2b5d-44a7-8f48-abdd10c6b574": {
+          "id": "55568648-2b5d-44a7-8f48-abdd10c6b574",
+          "filename": "55568648-2b5d-44a7-8f48-abdd10c6b574.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000340.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.213912+00:00"
+        },
+        "77e34e86-595e-4e29-9794-f8d2c7100450": {
+          "id": "77e34e86-595e-4e29-9794-f8d2c7100450",
+          "filename": "77e34e86-595e-4e29-9794-f8d2c7100450.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000350.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.285521+00:00"
+        },
+        "999998b3-883a-444d-aab0-24d8e39414f1": {
+          "id": "999998b3-883a-444d-aab0-24d8e39414f1",
+          "filename": "999998b3-883a-444d-aab0-24d8e39414f1.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000360.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.370546+00:00"
+        },
+        "d9a9793d-37d2-4290-aa89-8a533b0f7077": {
+          "id": "d9a9793d-37d2-4290-aa89-8a533b0f7077",
+          "filename": "d9a9793d-37d2-4290-aa89-8a533b0f7077.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000370.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.455277+00:00"
+        },
+        "ea291502-1a69-4e1c-a2d8-dee0dc08be79": {
+          "id": "ea291502-1a69-4e1c-a2d8-dee0dc08be79",
+          "filename": "ea291502-1a69-4e1c-a2d8-dee0dc08be79.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000380.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.528818+00:00"
+        },
+        "960936b2-0f92-43f2-b17f-762938dabf13": {
+          "id": "960936b2-0f92-43f2-b17f-762938dabf13",
+          "filename": "960936b2-0f92-43f2-b17f-762938dabf13.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000390.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.606148+00:00"
+        },
+        "9a58ab0b-a3de-411c-9c98-5e8538fa1fa9": {
+          "id": "9a58ab0b-a3de-411c-9c98-5e8538fa1fa9",
+          "filename": "9a58ab0b-a3de-411c-9c98-5e8538fa1fa9.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000400.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.679691+00:00"
+        },
+        "957b149d-ab9b-4f91-a2b1-e237ca80de0e": {
+          "id": "957b149d-ab9b-4f91-a2b1-e237ca80de0e",
+          "filename": "957b149d-ab9b-4f91-a2b1-e237ca80de0e.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000410.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.753832+00:00"
+        },
+        "2d75c8d1-5b19-4da7-99c2-f1cb431f007e": {
+          "id": "2d75c8d1-5b19-4da7-99c2-f1cb431f007e",
+          "filename": "2d75c8d1-5b19-4da7-99c2-f1cb431f007e.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000420.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.823370+00:00"
+        },
+        "9da45d9c-5c34-4ca0-a4ac-9d4ea1d5c640": {
+          "id": "9da45d9c-5c34-4ca0-a4ac-9d4ea1d5c640",
+          "filename": "9da45d9c-5c34-4ca0-a4ac-9d4ea1d5c640.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000430.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.895499+00:00"
+        },
+        "d0f7ecb4-bc06-45e1-8e35-7dcdf633dce4": {
+          "id": "d0f7ecb4-bc06-45e1-8e35-7dcdf633dce4",
+          "filename": "d0f7ecb4-bc06-45e1-8e35-7dcdf633dce4.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000440.jpg",
+          "uploaded_at": "2026-05-07T17:24:42.969346+00:00"
+        },
+        "ce287bd0-4fac-40fb-b2f0-b9a8145315ff": {
+          "id": "ce287bd0-4fac-40fb-b2f0-b9a8145315ff",
+          "filename": "ce287bd0-4fac-40fb-b2f0-b9a8145315ff.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000450.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.041418+00:00"
+        },
+        "8df4b784-e867-477f-a671-404b14525306": {
+          "id": "8df4b784-e867-477f-a671-404b14525306",
+          "filename": "8df4b784-e867-477f-a671-404b14525306.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000460.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.113820+00:00"
+        },
+        "950120c9-a50c-4951-bd22-3d10e1a9b7a6": {
+          "id": "950120c9-a50c-4951-bd22-3d10e1a9b7a6",
+          "filename": "950120c9-a50c-4951-bd22-3d10e1a9b7a6.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000470.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.183758+00:00"
+        },
+        "6debc5bf-f647-4c20-a6c3-ff882304c627": {
+          "id": "6debc5bf-f647-4c20-a6c3-ff882304c627",
+          "filename": "6debc5bf-f647-4c20-a6c3-ff882304c627.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000480.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.260096+00:00"
+        },
+        "638197d1-2fd5-4881-b5dd-a8a13de43b0d": {
+          "id": "638197d1-2fd5-4881-b5dd-a8a13de43b0d",
+          "filename": "638197d1-2fd5-4881-b5dd-a8a13de43b0d.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000490.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.333789+00:00"
+        },
+        "20581315-f224-4497-8ea2-4f7c374cdb02": {
+          "id": "20581315-f224-4497-8ea2-4f7c374cdb02",
+          "filename": "20581315-f224-4497-8ea2-4f7c374cdb02.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000500.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.411896+00:00"
+        },
+        "dc1973ea-be63-440c-9774-9baef6031bbc": {
+          "id": "dc1973ea-be63-440c-9774-9baef6031bbc",
+          "filename": "dc1973ea-be63-440c-9774-9baef6031bbc.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000510.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.484356+00:00"
+        },
+        "9e111fca-8627-4948-9e0c-0643f7e4049c": {
+          "id": "9e111fca-8627-4948-9e0c-0643f7e4049c",
+          "filename": "9e111fca-8627-4948-9e0c-0643f7e4049c.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000520.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.554635+00:00"
+        },
+        "81ecc6e3-41a6-4281-a934-894232abfd58": {
+          "id": "81ecc6e3-41a6-4281-a934-894232abfd58",
+          "filename": "81ecc6e3-41a6-4281-a934-894232abfd58.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000530.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.625330+00:00"
+        },
+        "586a399e-a0da-4c85-9b6d-ec388129d027": {
+          "id": "586a399e-a0da-4c85-9b6d-ec388129d027",
+          "filename": "586a399e-a0da-4c85-9b6d-ec388129d027.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000540.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.683870+00:00"
+        },
+        "04e5f58e-7b18-4cd6-a8b6-939fa0048ae9": {
+          "id": "04e5f58e-7b18-4cd6-a8b6-939fa0048ae9",
+          "filename": "04e5f58e-7b18-4cd6-a8b6-939fa0048ae9.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000550.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.768282+00:00"
+        },
+        "b5ddf03b-be33-4a63-86e6-25e75e940273": {
+          "id": "b5ddf03b-be33-4a63-86e6-25e75e940273",
+          "filename": "b5ddf03b-be33-4a63-86e6-25e75e940273.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000560.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.841573+00:00"
+        },
+        "e05c402f-6d1c-49e4-99f1-ff791b45c05e": {
+          "id": "e05c402f-6d1c-49e4-99f1-ff791b45c05e",
+          "filename": "e05c402f-6d1c-49e4-99f1-ff791b45c05e.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000570.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.913726+00:00"
+        },
+        "af13c525-482b-44f5-ba12-b0a4d8a4c8d9": {
+          "id": "af13c525-482b-44f5-ba12-b0a4d8a4c8d9",
+          "filename": "af13c525-482b-44f5-ba12-b0a4d8a4c8d9.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000580.jpg",
+          "uploaded_at": "2026-05-07T17:24:43.982779+00:00"
+        },
+        "50e171a1-c20c-416c-b23a-884fe70a3785": {
+          "id": "50e171a1-c20c-416c-b23a-884fe70a3785",
+          "filename": "50e171a1-c20c-416c-b23a-884fe70a3785.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000590.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.059490+00:00"
+        },
+        "36394e93-9249-4993-a882-025429f56cc1": {
+          "id": "36394e93-9249-4993-a882-025429f56cc1",
+          "filename": "36394e93-9249-4993-a882-025429f56cc1.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000600.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.141482+00:00"
+        },
+        "46f3aa08-ae57-481f-9b66-ca29bd0c26f9": {
+          "id": "46f3aa08-ae57-481f-9b66-ca29bd0c26f9",
+          "filename": "46f3aa08-ae57-481f-9b66-ca29bd0c26f9.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000610.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.213746+00:00"
+        },
+        "904f74e8-ee48-4fa2-819f-186382d28421": {
+          "id": "904f74e8-ee48-4fa2-819f-186382d28421",
+          "filename": "904f74e8-ee48-4fa2-819f-186382d28421.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000620.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.283675+00:00"
+        },
+        "6c45c1b3-a992-4833-b9c0-5e8f6f8f1747": {
+          "id": "6c45c1b3-a992-4833-b9c0-5e8f6f8f1747",
+          "filename": "6c45c1b3-a992-4833-b9c0-5e8f6f8f1747.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000630.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.356966+00:00"
+        },
+        "dc8b6069-6b98-4981-9c60-51d9e5cd6a7d": {
+          "id": "dc8b6069-6b98-4981-9c60-51d9e5cd6a7d",
+          "filename": "dc8b6069-6b98-4981-9c60-51d9e5cd6a7d.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000640.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.433675+00:00"
+        },
+        "14bfd6ec-cc06-4263-b799-a8bd29262294": {
+          "id": "14bfd6ec-cc06-4263-b799-a8bd29262294",
+          "filename": "14bfd6ec-cc06-4263-b799-a8bd29262294.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000650.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.506367+00:00"
+        },
+        "c8a9d646-23d2-4d21-b6b5-4e1a27651d30": {
+          "id": "c8a9d646-23d2-4d21-b6b5-4e1a27651d30",
+          "filename": "c8a9d646-23d2-4d21-b6b5-4e1a27651d30.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000660.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.577500+00:00"
+        },
+        "50bc5103-e459-464a-a366-778eda459871": {
+          "id": "50bc5103-e459-464a-a366-778eda459871",
+          "filename": "50bc5103-e459-464a-a366-778eda459871.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000670.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.650716+00:00"
+        },
+        "f6134fa8-8989-44f3-916a-cff00b1de0f5": {
+          "id": "f6134fa8-8989-44f3-916a-cff00b1de0f5",
+          "filename": "f6134fa8-8989-44f3-916a-cff00b1de0f5.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000680.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.723207+00:00"
+        },
+        "fe570155-a362-4acb-8608-c0676451518c": {
+          "id": "fe570155-a362-4acb-8608-c0676451518c",
+          "filename": "fe570155-a362-4acb-8608-c0676451518c.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000690.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.794543+00:00"
+        },
+        "e007cba3-8f12-4ff2-a8ef-2f77f0221b71": {
+          "id": "e007cba3-8f12-4ff2-a8ef-2f77f0221b71",
+          "filename": "e007cba3-8f12-4ff2-a8ef-2f77f0221b71.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000700.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.866177+00:00"
+        },
+        "62fe31ec-cc1a-49a9-a0f3-b0ea154b61cd": {
+          "id": "62fe31ec-cc1a-49a9-a0f3-b0ea154b61cd",
+          "filename": "62fe31ec-cc1a-49a9-a0f3-b0ea154b61cd.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000710.jpg",
+          "uploaded_at": "2026-05-07T17:24:44.939509+00:00"
+        },
+        "378f45a4-ec27-4007-bdbf-9e7f71af8921": {
+          "id": "378f45a4-ec27-4007-bdbf-9e7f71af8921",
+          "filename": "378f45a4-ec27-4007-bdbf-9e7f71af8921.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000720.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.011556+00:00"
+        },
+        "b5016ce7-d872-47e2-9db8-e91adcb26cc2": {
+          "id": "b5016ce7-d872-47e2-9db8-e91adcb26cc2",
+          "filename": "b5016ce7-d872-47e2-9db8-e91adcb26cc2.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000730.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.083571+00:00"
+        },
+        "4c732c8c-5b51-4d25-9f9b-1e49061cec0e": {
+          "id": "4c732c8c-5b51-4d25-9f9b-1e49061cec0e",
+          "filename": "4c732c8c-5b51-4d25-9f9b-1e49061cec0e.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000740.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.159986+00:00"
+        },
+        "ed183ffe-8231-4a8a-b30c-dc299ca400b2": {
+          "id": "ed183ffe-8231-4a8a-b30c-dc299ca400b2",
+          "filename": "ed183ffe-8231-4a8a-b30c-dc299ca400b2.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000750.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.233664+00:00"
+        },
+        "2bccfd4f-41ee-444d-a5b7-54303c4669da": {
+          "id": "2bccfd4f-41ee-444d-a5b7-54303c4669da",
+          "filename": "2bccfd4f-41ee-444d-a5b7-54303c4669da.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000760.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.306610+00:00"
+        },
+        "ee5dbbe7-5872-43ec-bfdc-27e97ce59e43": {
+          "id": "ee5dbbe7-5872-43ec-bfdc-27e97ce59e43",
+          "filename": "ee5dbbe7-5872-43ec-bfdc-27e97ce59e43.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000770.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.380409+00:00"
+        },
+        "8fabe3c6-45cc-43ef-9c55-ee3893ceabbf": {
+          "id": "8fabe3c6-45cc-43ef-9c55-ee3893ceabbf",
+          "filename": "8fabe3c6-45cc-43ef-9c55-ee3893ceabbf.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000780.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.454585+00:00"
+        },
+        "63575367-3f41-449d-9421-24a64eb07425": {
+          "id": "63575367-3f41-449d-9421-24a64eb07425",
+          "filename": "63575367-3f41-449d-9421-24a64eb07425.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000790.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.533631+00:00"
+        },
+        "0101ba35-563a-46f4-a648-b201a0bed188": {
+          "id": "0101ba35-563a-46f4-a648-b201a0bed188",
+          "filename": "0101ba35-563a-46f4-a648-b201a0bed188.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000800.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.610370+00:00"
+        },
+        "8605c3b6-1120-4e88-b436-b12c3d9edf57": {
+          "id": "8605c3b6-1120-4e88-b436-b12c3d9edf57",
+          "filename": "8605c3b6-1120-4e88-b436-b12c3d9edf57.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000810.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.682462+00:00"
+        },
+        "06462d2f-11a1-4bdf-9034-dd0f2eb04635": {
+          "id": "06462d2f-11a1-4bdf-9034-dd0f2eb04635",
+          "filename": "06462d2f-11a1-4bdf-9034-dd0f2eb04635.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000820.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.756456+00:00"
+        },
+        "c52c77f0-1e30-4e32-8338-c878cd42adda": {
+          "id": "c52c77f0-1e30-4e32-8338-c878cd42adda",
+          "filename": "c52c77f0-1e30-4e32-8338-c878cd42adda.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000830.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.831143+00:00"
+        },
+        "e8444f61-2c36-4757-ac40-e7baca93b749": {
+          "id": "e8444f61-2c36-4757-ac40-e7baca93b749",
+          "filename": "e8444f61-2c36-4757-ac40-e7baca93b749.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000840.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.903231+00:00"
+        },
+        "b86daf00-757b-4aca-aabc-c351a3dbc904": {
+          "id": "b86daf00-757b-4aca-aabc-c351a3dbc904",
+          "filename": "b86daf00-757b-4aca-aabc-c351a3dbc904.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000850.jpg",
+          "uploaded_at": "2026-05-07T17:24:45.977110+00:00"
+        },
+        "d68003fd-f576-48c3-9a2e-6593d5e1ffde": {
+          "id": "d68003fd-f576-48c3-9a2e-6593d5e1ffde",
+          "filename": "d68003fd-f576-48c3-9a2e-6593d5e1ffde.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000860.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.052414+00:00"
+        },
+        "1d7c6c5d-964a-4b35-94ed-418eed425137": {
+          "id": "1d7c6c5d-964a-4b35-94ed-418eed425137",
+          "filename": "1d7c6c5d-964a-4b35-94ed-418eed425137.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000870.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.128728+00:00"
+        },
+        "26426ac0-04ba-4d40-b9ed-6c3910c74e56": {
+          "id": "26426ac0-04ba-4d40-b9ed-6c3910c74e56",
+          "filename": "26426ac0-04ba-4d40-b9ed-6c3910c74e56.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000880.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.202394+00:00"
+        },
+        "9ce66cdd-6806-48d8-b710-4c39d9faeb26": {
+          "id": "9ce66cdd-6806-48d8-b710-4c39d9faeb26",
+          "filename": "9ce66cdd-6806-48d8-b710-4c39d9faeb26.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000890.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.277851+00:00"
+        },
+        "055e74ba-95e0-4572-81fb-8802af861155": {
+          "id": "055e74ba-95e0-4572-81fb-8802af861155",
+          "filename": "055e74ba-95e0-4572-81fb-8802af861155.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000900.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.352364+00:00"
+        },
+        "993411f8-0d40-4317-93e5-4dcb48614e7b": {
+          "id": "993411f8-0d40-4317-93e5-4dcb48614e7b",
+          "filename": "993411f8-0d40-4317-93e5-4dcb48614e7b.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000910.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.432715+00:00"
+        },
+        "2bc68e5b-d959-4d26-be1b-34532f0d2707": {
+          "id": "2bc68e5b-d959-4d26-be1b-34532f0d2707",
+          "filename": "2bc68e5b-d959-4d26-be1b-34532f0d2707.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000920.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.505781+00:00"
+        },
+        "51b5eb18-5688-4bfb-b952-ae90d64280c4": {
+          "id": "51b5eb18-5688-4bfb-b952-ae90d64280c4",
+          "filename": "51b5eb18-5688-4bfb-b952-ae90d64280c4.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000930.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.584317+00:00"
+        },
+        "53e84286-531d-4d87-93f9-c6cf6cfa7766": {
+          "id": "53e84286-531d-4d87-93f9-c6cf6cfa7766",
+          "filename": "53e84286-531d-4d87-93f9-c6cf6cfa7766.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000940.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.659961+00:00"
+        },
+        "f17c0c88-bd1d-4d5c-925d-1b876e145fac": {
+          "id": "f17c0c88-bd1d-4d5c-925d-1b876e145fac",
+          "filename": "f17c0c88-bd1d-4d5c-925d-1b876e145fac.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000950.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.741313+00:00"
+        },
+        "d919340d-29a2-4547-92e5-f72085ebb45e": {
+          "id": "d919340d-29a2-4547-92e5-f72085ebb45e",
+          "filename": "d919340d-29a2-4547-92e5-f72085ebb45e.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000970.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.883406+00:00"
+        },
+        "b4856cc0-10e5-4ae4-8d59-ca9009afff8e": {
+          "id": "b4856cc0-10e5-4ae4-8d59-ca9009afff8e",
+          "filename": "b4856cc0-10e5-4ae4-8d59-ca9009afff8e.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000980.jpg",
+          "uploaded_at": "2026-05-07T17:24:46.959807+00:00"
+        },
+        "875dc969-df1d-410e-b3e5-10ef62308efe": {
+          "id": "875dc969-df1d-410e-b3e5-10ef62308efe",
+          "filename": "875dc969-df1d-410e-b3e5-10ef62308efe.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_000990.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.032247+00:00"
+        },
+        "d24a89c3-3b90-4e30-8fa6-1204628c17bf": {
+          "id": "d24a89c3-3b90-4e30-8fa6-1204628c17bf",
+          "filename": "d24a89c3-3b90-4e30-8fa6-1204628c17bf.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001000.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.104352+00:00"
+        },
+        "c44e1fab-9067-472c-a9f8-a232d5ad9e12": {
+          "id": "c44e1fab-9067-472c-a9f8-a232d5ad9e12",
+          "filename": "c44e1fab-9067-472c-a9f8-a232d5ad9e12.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001010.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.176040+00:00"
+        },
+        "f9a0c71a-bb32-4088-90f2-ca6ec7b01711": {
+          "id": "f9a0c71a-bb32-4088-90f2-ca6ec7b01711",
+          "filename": "f9a0c71a-bb32-4088-90f2-ca6ec7b01711.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001020.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.233390+00:00"
+        },
+        "734bbfb5-6d06-41c2-8dcd-a494005db884": {
+          "id": "734bbfb5-6d06-41c2-8dcd-a494005db884",
+          "filename": "734bbfb5-6d06-41c2-8dcd-a494005db884.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001030.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.321747+00:00"
+        },
+        "1cc123d9-f6c7-483f-928a-92f4174624fb": {
+          "id": "1cc123d9-f6c7-483f-928a-92f4174624fb",
+          "filename": "1cc123d9-f6c7-483f-928a-92f4174624fb.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001040.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.399604+00:00"
+        },
+        "5fd09aa1-d5ca-47ff-8c25-f60668d482b3": {
+          "id": "5fd09aa1-d5ca-47ff-8c25-f60668d482b3",
+          "filename": "5fd09aa1-d5ca-47ff-8c25-f60668d482b3.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001050.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.471942+00:00"
+        },
+        "5e5e97c3-ce6b-40bb-8ecd-faff598ad819": {
+          "id": "5e5e97c3-ce6b-40bb-8ecd-faff598ad819",
+          "filename": "5e5e97c3-ce6b-40bb-8ecd-faff598ad819.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001060.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.533370+00:00"
+        },
+        "58d16037-b246-4baa-a0d6-eb720bc6452d": {
+          "id": "58d16037-b246-4baa-a0d6-eb720bc6452d",
+          "filename": "58d16037-b246-4baa-a0d6-eb720bc6452d.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001070.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.618795+00:00"
+        },
+        "13e3860c-cae4-4002-8ffe-a3ee2e26900c": {
+          "id": "13e3860c-cae4-4002-8ffe-a3ee2e26900c",
+          "filename": "13e3860c-cae4-4002-8ffe-a3ee2e26900c.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001080.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.683437+00:00"
+        },
+        "612c1c03-e060-4990-b1be-4faf721309af": {
+          "id": "612c1c03-e060-4990-b1be-4faf721309af",
+          "filename": "612c1c03-e060-4990-b1be-4faf721309af.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001090.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.767950+00:00"
+        },
+        "f8ca97eb-1d9d-4402-8606-38e097d69644": {
+          "id": "f8ca97eb-1d9d-4402-8606-38e097d69644",
+          "filename": "f8ca97eb-1d9d-4402-8606-38e097d69644.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001100.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.833322+00:00"
+        },
+        "487eea20-7262-432d-986b-74b575d9c143": {
+          "id": "487eea20-7262-432d-986b-74b575d9c143",
+          "filename": "487eea20-7262-432d-986b-74b575d9c143.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001110.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.920688+00:00"
+        },
+        "8667b9fa-509b-4cb5-aeee-018f48287cb0": {
+          "id": "8667b9fa-509b-4cb5-aeee-018f48287cb0",
+          "filename": "8667b9fa-509b-4cb5-aeee-018f48287cb0.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001120.jpg",
+          "uploaded_at": "2026-05-07T17:24:47.983353+00:00"
+        },
+        "265a00fd-249f-4cdf-a63c-8b1a6950c9cd": {
+          "id": "265a00fd-249f-4cdf-a63c-8b1a6950c9cd",
+          "filename": "265a00fd-249f-4cdf-a63c-8b1a6950c9cd.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001130.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.066624+00:00"
+        },
+        "2102a802-bc49-4df4-b0ba-7075e0ee1ff8": {
+          "id": "2102a802-bc49-4df4-b0ba-7075e0ee1ff8",
+          "filename": "2102a802-bc49-4df4-b0ba-7075e0ee1ff8.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001140.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.133399+00:00"
+        },
+        "28c5b87f-b622-41e9-9ea9-82ad61dac13d": {
+          "id": "28c5b87f-b622-41e9-9ea9-82ad61dac13d",
+          "filename": "28c5b87f-b622-41e9-9ea9-82ad61dac13d.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001150.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.218660+00:00"
+        },
+        "49c76188-045b-4b30-88ba-af59c58af229": {
+          "id": "49c76188-045b-4b30-88ba-af59c58af229",
+          "filename": "49c76188-045b-4b30-88ba-af59c58af229.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001160.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.283313+00:00"
+        },
+        "b31db987-5f1f-42ff-87df-786f1b3607ec": {
+          "id": "b31db987-5f1f-42ff-87df-786f1b3607ec",
+          "filename": "b31db987-5f1f-42ff-87df-786f1b3607ec.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001170.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.368837+00:00"
+        },
+        "130c62dd-883a-4d37-acc0-66b2cabe1db4": {
+          "id": "130c62dd-883a-4d37-acc0-66b2cabe1db4",
+          "filename": "130c62dd-883a-4d37-acc0-66b2cabe1db4.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001180.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.444077+00:00"
+        },
+        "b6476ee2-5c04-41cb-a8bc-52151f619dd3": {
+          "id": "b6476ee2-5c04-41cb-a8bc-52151f619dd3",
+          "filename": "b6476ee2-5c04-41cb-a8bc-52151f619dd3.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001190.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.518300+00:00"
+        },
+        "c79af971-e94f-4192-b648-25584558f667": {
+          "id": "c79af971-e94f-4192-b648-25584558f667",
+          "filename": "c79af971-e94f-4192-b648-25584558f667.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001200.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.583420+00:00"
+        },
+        "271eb2db-a395-458a-a189-7c5699e5f0b9": {
+          "id": "271eb2db-a395-458a-a189-7c5699e5f0b9",
+          "filename": "271eb2db-a395-458a-a189-7c5699e5f0b9.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001210.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.671222+00:00"
+        },
+        "705f7aac-2d09-4e90-bbf6-c9cc52b01d7a": {
+          "id": "705f7aac-2d09-4e90-bbf6-c9cc52b01d7a",
+          "filename": "705f7aac-2d09-4e90-bbf6-c9cc52b01d7a.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001220.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.750680+00:00"
+        },
+        "7694ea79-9a2e-4c29-8eec-0d644c00cb7c": {
+          "id": "7694ea79-9a2e-4c29-8eec-0d644c00cb7c",
+          "filename": "7694ea79-9a2e-4c29-8eec-0d644c00cb7c.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001230.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.825922+00:00"
+        },
+        "1e577a2a-f4d2-439b-8f39-36bea1f0159b": {
+          "id": "1e577a2a-f4d2-439b-8f39-36bea1f0159b",
+          "filename": "1e577a2a-f4d2-439b-8f39-36bea1f0159b.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001240.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.909033+00:00"
+        },
+        "231cd695-9d05-4faf-ae09-4ccf80ff30d1": {
+          "id": "231cd695-9d05-4faf-ae09-4ccf80ff30d1",
+          "filename": "231cd695-9d05-4faf-ae09-4ccf80ff30d1.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001250.jpg",
+          "uploaded_at": "2026-05-07T17:24:48.983354+00:00"
+        },
+        "6c9488b7-efc7-4a52-8932-484474d63c7d": {
+          "id": "6c9488b7-efc7-4a52-8932-484474d63c7d",
+          "filename": "6c9488b7-efc7-4a52-8932-484474d63c7d.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001260.jpg",
+          "uploaded_at": "2026-05-07T17:24:49.068792+00:00"
+        },
+        "2457d3ed-4102-4d5f-8e07-97e4d25580fd": {
+          "id": "2457d3ed-4102-4d5f-8e07-97e4d25580fd",
+          "filename": "2457d3ed-4102-4d5f-8e07-97e4d25580fd.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001270.jpg",
+          "uploaded_at": "2026-05-07T17:24:49.133282+00:00"
+        },
+        "c68fdbd5-77eb-4dc1-9e2a-5868658d90fe": {
+          "id": "c68fdbd5-77eb-4dc1-9e2a-5868658d90fe",
+          "filename": "c68fdbd5-77eb-4dc1-9e2a-5868658d90fe.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001280.jpg",
+          "uploaded_at": "2026-05-07T17:24:49.220828+00:00"
+        },
+        "118ea375-1eab-4443-9d6f-3ee3b4d3efd6": {
+          "id": "118ea375-1eab-4443-9d6f-3ee3b4d3efd6",
+          "filename": "118ea375-1eab-4443-9d6f-3ee3b4d3efd6.jpg",
+          "original_name": "bottle_fanta_20260507_172035_frame_001290.jpg",
+          "uploaded_at": "2026-05-07T17:24:49.283256+00:00"
         }
       },
       "classes": [
@@ -11798,7 +12560,152 @@
           "name": "v1",
           "source_version_id": null,
           "created_at": "2026-05-07T14:09:38.895948+00:00",
-          "updated_at": "2026-05-07T15:26:26.978094+00:00"
+          "updated_at": "2026-05-10T13:02:47.722257+00:00"
+        }
+      }
+    },
+    "18d3f1a6-8ba5-4f0d-8df0-395f66789104": {
+      "id": "18d3f1a6-8ba5-4f0d-8df0-395f66789104",
+      "name": "Synthetic Dataset",
+      "description": "Auto-generated synthetic dataset",
+      "created_at": "2026-05-10T11:33:04.398377+00:00",
+      "updated_at": "2026-05-10T11:33:05.264757+00:00",
+      "images": {
+        "6732cd4b-69ae-4a13-bd3d-606139913a1d": {
+          "id": "6732cd4b-69ae-4a13-bd3d-606139913a1d",
+          "filename": "6732cd4b-69ae-4a13-bd3d-606139913a1d.jpg",
+          "original_name": "000000.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.515214+00:00"
+        },
+        "285f431e-c750-4666-8c10-91222c2de629": {
+          "id": "285f431e-c750-4666-8c10-91222c2de629",
+          "filename": "285f431e-c750-4666-8c10-91222c2de629.jpg",
+          "original_name": "000001.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.556275+00:00"
+        },
+        "60bc8a45-e1da-42d4-966c-a13fa1a1d20f": {
+          "id": "60bc8a45-e1da-42d4-966c-a13fa1a1d20f",
+          "filename": "60bc8a45-e1da-42d4-966c-a13fa1a1d20f.jpg",
+          "original_name": "000002.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.596033+00:00"
+        },
+        "5e992dac-dbae-4012-a581-870c5d2e9fc8": {
+          "id": "5e992dac-dbae-4012-a581-870c5d2e9fc8",
+          "filename": "5e992dac-dbae-4012-a581-870c5d2e9fc8.jpg",
+          "original_name": "000003.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.636160+00:00"
+        },
+        "2ba80397-61f9-49e5-9e7e-82c2e66c75ec": {
+          "id": "2ba80397-61f9-49e5-9e7e-82c2e66c75ec",
+          "filename": "2ba80397-61f9-49e5-9e7e-82c2e66c75ec.jpg",
+          "original_name": "000004.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.677041+00:00"
+        },
+        "ec0942b0-f4e4-49a3-adb8-ab12bb2b40d1": {
+          "id": "ec0942b0-f4e4-49a3-adb8-ab12bb2b40d1",
+          "filename": "ec0942b0-f4e4-49a3-adb8-ab12bb2b40d1.jpg",
+          "original_name": "000005.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.716480+00:00"
+        },
+        "12f487c2-2280-4cc7-b7e2-1a57260454ce": {
+          "id": "12f487c2-2280-4cc7-b7e2-1a57260454ce",
+          "filename": "12f487c2-2280-4cc7-b7e2-1a57260454ce.jpg",
+          "original_name": "000006.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.756971+00:00"
+        },
+        "0bd13dbd-417a-41aa-a96b-5fdc077f9ee0": {
+          "id": "0bd13dbd-417a-41aa-a96b-5fdc077f9ee0",
+          "filename": "0bd13dbd-417a-41aa-a96b-5fdc077f9ee0.jpg",
+          "original_name": "000007.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.796666+00:00"
+        },
+        "7d7f671c-29b6-467e-8865-3443a9320c41": {
+          "id": "7d7f671c-29b6-467e-8865-3443a9320c41",
+          "filename": "7d7f671c-29b6-467e-8865-3443a9320c41.jpg",
+          "original_name": "000008.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.834997+00:00"
+        },
+        "24eedb54-8a0a-47d5-90b1-180d5a25396f": {
+          "id": "24eedb54-8a0a-47d5-90b1-180d5a25396f",
+          "filename": "24eedb54-8a0a-47d5-90b1-180d5a25396f.jpg",
+          "original_name": "000009.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.875825+00:00"
+        },
+        "bb802d24-7658-43cf-973d-36609c799f4e": {
+          "id": "bb802d24-7658-43cf-973d-36609c799f4e",
+          "filename": "bb802d24-7658-43cf-973d-36609c799f4e.jpg",
+          "original_name": "000010.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.914119+00:00"
+        },
+        "6d0b7216-f237-4f1a-a1af-19a562d5c153": {
+          "id": "6d0b7216-f237-4f1a-a1af-19a562d5c153",
+          "filename": "6d0b7216-f237-4f1a-a1af-19a562d5c153.jpg",
+          "original_name": "000011.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.952584+00:00"
+        },
+        "1aa7f1f4-c33c-4fed-9b9d-5ee52db4d493": {
+          "id": "1aa7f1f4-c33c-4fed-9b9d-5ee52db4d493",
+          "filename": "1aa7f1f4-c33c-4fed-9b9d-5ee52db4d493.jpg",
+          "original_name": "000012.jpg",
+          "uploaded_at": "2026-05-10T11:33:04.987863+00:00"
+        },
+        "cf6c1f9d-8538-4125-9148-f783392f269e": {
+          "id": "cf6c1f9d-8538-4125-9148-f783392f269e",
+          "filename": "cf6c1f9d-8538-4125-9148-f783392f269e.jpg",
+          "original_name": "000013.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.025116+00:00"
+        },
+        "71be7b30-35bb-45bb-b291-2fef389e6433": {
+          "id": "71be7b30-35bb-45bb-b291-2fef389e6433",
+          "filename": "71be7b30-35bb-45bb-b291-2fef389e6433.jpg",
+          "original_name": "000014.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.071649+00:00"
+        },
+        "de5d0eb6-1c99-45fe-ac6b-f93ce6b06817": {
+          "id": "de5d0eb6-1c99-45fe-ac6b-f93ce6b06817",
+          "filename": "de5d0eb6-1c99-45fe-ac6b-f93ce6b06817.jpg",
+          "original_name": "000015.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.110767+00:00"
+        },
+        "df7933b4-f6f5-4f45-bd33-12ddccac9660": {
+          "id": "df7933b4-f6f5-4f45-bd33-12ddccac9660",
+          "filename": "df7933b4-f6f5-4f45-bd33-12ddccac9660.jpg",
+          "original_name": "000016.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.147482+00:00"
+        },
+        "e3890afd-6fa7-4499-bb60-6d872ea78370": {
+          "id": "e3890afd-6fa7-4499-bb60-6d872ea78370",
+          "filename": "e3890afd-6fa7-4499-bb60-6d872ea78370.jpg",
+          "original_name": "000017.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.174885+00:00"
+        },
+        "777408ec-c5f7-40a6-9f0b-c2d082dfa534": {
+          "id": "777408ec-c5f7-40a6-9f0b-c2d082dfa534",
+          "filename": "777408ec-c5f7-40a6-9f0b-c2d082dfa534.jpg",
+          "original_name": "000018.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.225214+00:00"
+        },
+        "453b0ecf-5bd4-4bc1-8f02-efda777733ac": {
+          "id": "453b0ecf-5bd4-4bc1-8f02-efda777733ac",
+          "filename": "453b0ecf-5bd4-4bc1-8f02-efda777733ac.jpg",
+          "original_name": "000019.jpg",
+          "uploaded_at": "2026-05-10T11:33:05.264757+00:00"
+        }
+      },
+      "classes": [
+        {
+          "id": 0,
+          "name": "product_0",
+          "color": "#e74c3c"
+        }
+      ],
+      "annotation_versions": {
+        "ed53fde3-7593-4573-8ab3-97eecf22526f": {
+          "id": "ed53fde3-7593-4573-8ab3-97eecf22526f",
+          "name": "v1-synthetic",
+          "source_version_id": null,
+          "created_at": "2026-05-10T11:33:04.469284+00:00",
+          "updated_at": "2026-05-10T11:33:04.469284+00:00"
         }
       }
     }

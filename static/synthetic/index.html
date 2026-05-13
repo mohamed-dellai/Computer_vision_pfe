@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Synthetic Dataset Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<header class="top-bar">
+  <div class="logo">⚗️ Synthetic Generator</div>
+  <nav class="top-nav">
+    <a href="/static/index.html">← Back to Dashboard</a>
+  </nav>
+</header>
+
+<div class="app-layout">
+
+  <!-- ===== LEFT PANEL: Config ===== -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Step 1: Background -->
+    <section class="card" id="sec-background">
+      <h3 class="card-title"><span class="step-badge">1</span> Background Image</h3>
+      <div class="upload-zone" id="bg-drop" onclick="document.getElementById('bg-file').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16l4-4 4 4 4-6 4 6"/><rect x="2" y="3" width="20" height="18" rx="2"/></svg>
+        <p>Drop background image or click to upload</p>
+        <span class="format-tag">📷 Image only: JPG · PNG · BMP · WEBP</span>
+      </div>
+      <input type="file" id="bg-file" accept="image/*" hidden/>
+      <div id="bg-preview-row" class="file-row hidden">
+        <span id="bg-name" class="file-name"></span>
+        <button class="btn-icon danger" onclick="clearBackground()">✕</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Products -->
+    <section class="card" id="sec-products">
+      <h3 class="card-title"><span class="step-badge">2</span> Product Classes</h3>
+      <div class="format-banner">🧊 Upload <strong>3D models</strong> per class (.obj .glb .stl .ply) — NOT images</div>
+      <div id="product-list"></div>
+      <button class="btn secondary full-width" onclick="addProductClass()">＋ Add Product Class</button>
+    </section>
+
+    <!-- Step 3: Placement & Scale -->
+    <section class="card" id="sec-placement">
+      <h3 class="card-title"><span class="step-badge">3</span> Placement Zones &amp; Scale</h3>
+      <p class="hint hidden" id="draw-hint" style="color:var(--accent2); font-weight:500;">
+        Click on canvas to add points. Click the first point or press Enter to close the shape.
+      </p>
+      <div class="tool-row">
+        <button class="btn primary" id="btn-draw" onclick="setTool('draw')">✏️ Draw Zone</button>
+        <button class="btn secondary" id="btn-select" onclick="setTool('select')">⬛ Select</button>
+        <button class="btn secondary" id="btn-calibrate" onclick="setTool('calibrate')" title="Test single placement">🎯 Calibrate</button>
+        <button class="btn hidden" id="btn-finish-zone" onclick="_finishZone()" style="background:var(--accent2); color:#000; font-weight:600;">✅ Finish Zone</button>
+        <button class="btn danger" onclick="deleteSelectedZone()">🗑 Delete</button>
+      </div>
+      <div class="zone-list" id="zone-list"></div>
+
+      <!-- Calibration panel -->
+      <div id="calibrate-panel" class="hidden" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px dashed var(--accent);">
+        <p class="hint" style="color:var(--accent); font-weight:500; margin-bottom:8px;">Click anywhere on the canvas to preview the product.</p>
+        <label class="field-label">Test Product</label>
+        <select id="calib-product" class="text-input" style="width:100%; margin-bottom:10px;"></select>
+        
+        <label class="field-label">Pitch X: <span class="value-badge" id="val-calib-rx">0°</span></label>
+        <input type="range" id="calib-rx" min="-180" max="180" step="5" value="0" oninput="document.getElementById('val-calib-rx').textContent=this.value+'°'"/>
+        
+        <label class="field-label">Yaw Y: <span class="value-badge" id="val-calib-ry">0°</span></label>
+        <input type="range" id="calib-ry" min="-180" max="180" step="5" value="0" oninput="document.getElementById('val-calib-ry').textContent=this.value+'°'"/>
+        
+        <label class="field-label">Roll Z: <span class="value-badge" id="val-calib-rz">0°</span></label>
+        <input type="range" id="calib-rz" min="-180" max="180" step="5" value="0" oninput="document.getElementById('val-calib-rz').textContent=this.value+'°'"/>
+      </div>
+      <hr class="divider"/>
+      <label class="field-label">Object Scale <span class="value-badge" id="val-fixed-scale">1.0</span></label>
+      <input type="range" id="fixed-scale" min="0.05" max="5.0" step="0.05" value="1.0" oninput="document.getElementById('val-fixed-scale').textContent=this.value"/>
+    </section>
+
+    <!-- Step 4: Rotation -->
+    <section class="card" id="sec-rotation">
+      <h3 class="card-title"><span class="step-badge">4</span> 3D Rotation Ranges</h3>
+      <div class="range-pair">
+        <label>Pitch X</label>
+        <div class="dual-range">
+          <input type="number" id="rx-min" value="-30" class="num-input" step="5"/>
+          <span>to</span>
+          <input type="number" id="rx-max" value="30" class="num-input" step="5"/>
+          <span>°</span>
+        </div>
+      </div>
+      <div class="range-pair">
+        <label>Yaw Y (full 360)</label>
+        <div class="dual-range">
+          <input type="number" id="ry-min" value="-180" class="num-input" step="10"/>
+          <span>to</span>
+          <input type="number" id="ry-max" value="180" class="num-input" step="10"/>
+          <span>°</span>
+        </div>
+      </div>
+      <div class="range-pair">
+        <label>Roll Z</label>
+        <div class="dual-range">
+          <input type="number" id="rz-min" value="-15" class="num-input" step="5"/>
+          <span>to</span>
+          <input type="number" id="rz-max" value="15" class="num-input" step="5"/>
+          <span>°</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 5: Lighting -->
+    <section class="card" id="sec-lighting">
+      <h3 class="card-title"><span class="step-badge">5</span> Lighting</h3>
+      <label class="field-label">Ambient <span class="value-badge" id="val-ambient">0.4</span></label>
+      <input type="range" id="ambient" min="0" max="1" step="0.05" value="0.4" oninput="document.getElementById('val-ambient').textContent=this.value"/>
+      <label class="field-label">Directional <span class="value-badge" id="val-dir">3.0</span></label>
+      <input type="range" id="dir-intensity" min="0" max="10" step="0.1" value="3.0" oninput="document.getElementById('val-dir').textContent=this.value"/>
+      <label class="field-label">Intensity variation ± <span class="value-badge" id="val-vary">30%</span></label>
+      <input type="range" id="light-vary" min="0" max="1" step="0.05" value="0.3" oninput="document.getElementById('val-vary').textContent=Math.round(this.value*100)+'%'"/>
+    </section>
+
+    <!-- Step 6: Augmentations -->
+    <section class="card" id="sec-aug">
+      <h3 class="card-title"><span class="step-badge">6</span> Augmentations</h3>
+      <div class="aug-row">
+        <label class="toggle-label"><input type="checkbox" id="aug-blur" checked/> Motion Blur</label>
+        <input type="range" id="aug-blur-prob" min="0" max="1" step="0.05" value="0.3" class="mini-range"/>
+        <span class="value-badge" id="val-blur">30%</span>
+      </div>
+      <div class="aug-row">
+        <label class="toggle-label"><input type="checkbox" id="aug-bright" checked/> Brightness</label>
+        <input type="range" id="aug-bright-prob" min="0" max="1" step="0.05" value="0.5" class="mini-range"/>
+        <span class="value-badge" id="val-bright">50%</span>
+      </div>
+      <div class="aug-row">
+        <label class="toggle-label"><input type="checkbox" id="aug-noise" checked/> Noise</label>
+        <input type="range" id="aug-noise-prob" min="0" max="1" step="0.05" value="0.3" class="mini-range"/>
+        <span class="value-badge" id="val-noise">30%</span>
+      </div>
+      <div class="aug-row">
+        <label class="toggle-label"><input type="checkbox" id="aug-hue" checked/> Hue Shift</label>
+        <input type="range" id="aug-hue-prob" min="0" max="1" step="0.05" value="0.3" class="mini-range"/>
+        <span class="value-badge" id="val-hue">30%</span>
+      </div>
+      <div class="aug-row">
+        <label class="toggle-label"><input type="checkbox" id="aug-jpeg" checked/> JPEG Artifacts</label>
+        <input type="range" id="aug-jpeg-prob" min="0" max="1" step="0.05" value="0.2" class="mini-range"/>
+        <span class="value-badge" id="val-jpeg">20%</span>
+      </div>
+      <script>
+        ['blur','bright','noise','hue','jpeg'].forEach(id=>{
+          const el=document.getElementById(`aug-${id}-prob`);
+          el.oninput=()=>document.getElementById(`val-${id}`).textContent=Math.round(el.value*100)+'%';
+        });
+      </script>
+    </section>
+
+    <!-- Step 7: Generation -->
+    <section class="card" id="sec-generate">
+      <h3 class="card-title"><span class="step-badge">7</span> Generate</h3>
+      <div class="field-group">
+        <label class="field-label">Dataset Name</label>
+        <input type="text" id="dataset-name" class="text-input" value="Synthetic Dataset"/>
+      </div>
+      <div class="field-grid">
+        <div>
+          <label class="field-label">Images</label>
+          <input type="number" id="num-images" value="500" min="1" max="100000" class="text-input"/>
+        </div>
+        <div>
+          <label class="field-label">Width</label>
+          <input type="number" id="out-width" value="640" min="64" class="text-input"/>
+        </div>
+        <div>
+          <label class="field-label">Height</label>
+          <input type="number" id="out-height" value="640" min="64" class="text-input"/>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div>
+          <label class="field-label">Min instances</label>
+          <input type="number" id="inst-min" value="1" min="0" max="20" class="text-input"/>
+        </div>
+        <div>
+          <label class="field-label">Max instances</label>
+          <input type="number" id="inst-max" value="3" min="1" max="20" class="text-input"/>
+        </div>
+      </div>
+      <label class="field-label">Negative sample ratio <span class="value-badge" id="val-neg">5%</span></label>
+      <input type="range" id="neg-ratio" min="0" max="0.5" step="0.01" value="0.05"
+             oninput="document.getElementById('val-neg').textContent=Math.round(this.value*100)+'%'"/>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="runPreview()">👁 Preview</button>
+        <button class="btn primary big" onclick="startGeneration()">🚀 Generate</button>
+      </div>
+      <div id="progress-area" class="hidden">
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+        <p id="progress-label" class="hint center"></p>
+        <button class="btn danger small" onclick="stopGeneration()">■ Stop</button>
+      </div>
+      <div id="job-result" class="result-box hidden"></div>
+    </section>
+
+  </aside>
+
+  <!-- ===== MAIN: Canvas + Preview ===== -->
+  <main class="main-area">
+
+    <div class="canvas-header">
+      <h2 id="canvas-title">Upload a background image to begin</h2>
+      <div class="canvas-tools">
+        <button class="btn-icon" onclick="zoomIn()" title="Zoom in">＋</button>
+        <button class="btn-icon" onclick="zoomReset()" title="Reset zoom">⟳</button>
+        <button class="btn-icon" onclick="zoomOut()" title="Zoom out">－</button>
+      </div>
+    </div>
+
+    <div class="canvas-container" id="canvas-container">
+      <canvas id="main-canvas"></canvas>
+      <div class="canvas-placeholder" id="canvas-placeholder">
+        <div class="placeholder-inner">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="12" width="56" height="40" rx="4"/>
+            <circle cx="22" cy="28" r="6"/>
+            <path d="M4 44 l16-14 10 10 12-16 22 18"/>
+          </svg>
+          <p>Background image will appear here</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview gallery -->
+    <div id="preview-section" class="hidden">
+      <h3 class="preview-title">Preview Samples</h3>
+      <div id="preview-grid" class="preview-grid"></div>
+    </div>
+
+    <!-- Active jobs -->
+    <div id="jobs-section" class="hidden">
+      <h3 class="preview-title">Generation Jobs</h3>
+      <div id="jobs-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Product class template (hidden) -->
+<template id="product-template">
+  <div class="product-card" data-idx="">
+    <div class="product-header">
+      <div class="color-dot" style="background:#e74c3c"></div>
+      <input type="text" class="product-name" placeholder="Class name (e.g. bottle)" value=""/>
+      <input type="number" class="product-id" placeholder="ID" value="0" min="0"/>
+      <button class="btn-icon danger" onclick="removeProductClass(this)">✕</button>
+    </div>
+    <div class="model-upload-zone" onclick="triggerModelUpload(this)">
+      <span>+ Add 3D model files (.obj .glb .stl .ply)</span>
+      <span class="format-tag-sm">NOT images — 3D models only</span>
+      <input type="file" class="model-file-input" accept=".obj,.glb,.gltf,.stl,.ply,.dae" multiple hidden/>
+    </div>
+    <div class="model-list"></div>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

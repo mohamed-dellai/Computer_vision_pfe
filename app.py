@@ -18,6 +18,7 @@ from routes.models import create_models_blueprint
 from routes.trackers import create_trackers_blueprint
 from routes.training import create_training_blueprint
 from routes.ui import create_ui_blueprint
+from routes.synthetic import create_synthetic_blueprint
 from services.autodistill import GroundedSam2AutodistillService
 from services.training_runner import TrainingRunner
 from services.training_store import TrainingStore
@@ -35,10 +36,12 @@ if not os.path.exists(TRACKERS_DIR):
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 TRAINING_DIR = os.path.join(os.path.dirname(__file__), 'data', 'training')
+SYNTHETIC_DIR = os.path.join(os.path.dirname(__file__), 'data', 'synthetic')
 
 ALLOWED_EXTENSIONS = {'pt', 'onnx', 'engine'}
 
 os.makedirs(TRAINING_DIR, exist_ok=True)
+os.makedirs(SYNTHETIC_DIR, exist_ok=True)
 
 # In-memory stores
 cameras = {}
@@ -98,6 +101,7 @@ app.register_blueprint(create_models_blueprint(MODELS_DIR, ALLOWED_EXTENSIONS, a
 app.register_blueprint(create_trackers_blueprint(TRACKERS_DIR))
 app.register_blueprint(create_training_blueprint(training_store, training_runner, autodistill_service, cameras))
 app.register_blueprint(create_ui_blueprint(STATIC_DIR))
+app.register_blueprint(create_synthetic_blueprint(SYNTHETIC_DIR, store=training_store))
 
 # Startup visibility for debugging route registration issues.
 print("Registered routes:")
