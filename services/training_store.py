@@ -175,12 +175,16 @@ class TrainingStore:
                 filename = f"{image_id}{ext}"
                 abs_path = os.path.join(images_dir, filename)
                 file.save(abs_path)
+                width, height = self._read_image_size(abs_path)
                 img = {
                     "id": image_id,
                     "filename": filename,
                     "original_name": secure,
                     "uploaded_at": _utc_now(),
                 }
+                if width and height:
+                    img["width"] = width
+                    img["height"] = height
                 dataset["images"][image_id] = img
                 saved.append(img)
 
@@ -231,11 +235,14 @@ class TrainingStore:
                             abs_path = os.path.join(images_dir, filename)
                             ok = cv2.imwrite(abs_path, frame, [int(cv2.IMWRITE_JPEG_QUALITY), 92])
                             if ok:
+                                height, width = frame.shape[:2]
                                 item = {
                                     "id": image_id,
                                     "filename": filename,
                                     "original_name": f"{os.path.splitext(secure)[0]}_frame_{frame_idx:06d}.jpg",
                                     "uploaded_at": _utc_now(),
+                                    "width": int(width),
+                                    "height": int(height),
                                 }
                                 dataset["images"][image_id] = item
                                 extracted.append(item)
@@ -259,6 +266,264 @@ class TrainingStore:
                     os.remove(temp_path)
                 except FileNotFoundError:
                     pass
+
+    @staticmethod
+    def _read_image_size(path: str):
+        image = cv2.imread(path)
+        if image is None:
+            return None, None
+        height, width = image.shape[:2]
+        return int(width), int(height)
+
+    @staticmethod
+    def _parse_split_ratio(value, default: float) -> float:
+        if value is None or value == "":
+            return default
+        try:
+            ratio = float(value)
+        except Exception as exc:
+            raise ValueError("split values must be numbers between 0.05 and 0.95") from exc
+        if ratio < 0.05 or ratio > 0.95:
+            raise ValueError("split values must be between 0.05 and 0.95")
+        return ratio
+
+    @staticmethod
+    def _parse_crop_edge(value, default: float, name: str) -> float:
+        if value is None or value == "":
+            return default
+        try:
+            edge = float(value)
+        except Exception as exc:
+            raise ValueError(f"{name} must be a number between 0 and 1") from exc
+        if edge < 0.0 or edge > 1.0:
+            raise ValueError(f"{name} must be between 0 and 1")
+        return edge
+
+    def transform_images_crop(
+        self,
+        dataset_id: str,
+        image_ids: List[str],
+        mode: str,
+        split_x=None,
+        split_y=None,
+        crop_left=None,
+        crop_top=None,
+        crop_right=None,
+        crop_bottom=None,
+        create_new_dataset: bool = False,
+        new_dataset_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        mode = (mode or "").strip().lower()
+        if mode not in {"static", "vertical", "horizontal", "grid"}:
+            raise ValueError("mode must be static, vertical, horizontal, or grid")
+        if not isinstance(image_ids, list) or not image_ids:
+            raise ValueError("image_ids must be a non-empty list")
+        split_x_ratio = self._parse_split_ratio(split_x, 0.5)
+        split_y_ratio = self._parse_split_ratio(split_y, 0.5)
+        crop_left_ratio = self._parse_crop_edge(crop_left, 0.05, "crop_left")
+        crop_top_ratio = self._parse_crop_edge(crop_top, 0.05, "crop_top")
+        crop_right_ratio = self._parse_crop_edge(crop_right, 0.95, "crop_right")
+        crop_bottom_ratio = self._parse_crop_edge(crop_bottom, 0.95, "crop_bottom")
+        if crop_right_ratio - crop_left_ratio < 0.01:
+            raise ValueError("crop_right must be greater than crop_left")
+        if crop_bottom_ratio - crop_top_ratio < 0.01:
+            raise ValueError("crop_bottom must be greater than crop_top")
+
+        created = []
+        skipped = []
+        with self._lock:
+            data = self._load_registry()
+            dataset = self._require_dataset(data, dataset_id)
+            images = dataset.get("images", {})
+            
+            target_dataset = dataset
+            target_dataset_id = dataset_id
+            version_id_map = {}
+            
+            if create_new_dataset:
+                target_dataset_id = str(uuid.uuid4())
+                now = _utc_now()
+                target_dataset = {
+                    "id": target_dataset_id,
+                    "name": str(new_dataset_name).strip() if new_dataset_name else f"{dataset.get('name', 'Dataset')} (Cropped)",
+                    "description": f"Cropped from dataset {dataset.get('name', dataset_id)}",
+                    "created_at": now,
+                    "updated_at": now,
+                    "images": {},
+                    "classes": [dict(c) for c in dataset.get("classes", [])],
+                    "annotation_versions": {},
+                }
+                data["datasets"][target_dataset_id] = target_dataset
+                
+                os.makedirs(self._dataset_images_dir(target_dataset_id), exist_ok=True)
+                os.makedirs(self._dataset_versions_dir(target_dataset_id), exist_ok=True)
+                
+                for src_vid, src_v in dataset.get("annotation_versions", {}).items():
+                    new_vid = str(uuid.uuid4())
+                    version_id_map[src_vid] = new_vid
+                    target_dataset["annotation_versions"][new_vid] = {
+                        "id": new_vid,
+                        "name": src_v.get("name", "Version 1"),
+                        "source_version_id": None,
+                        "created_at": now,
+                        "updated_at": now,
+                    }
+                    os.makedirs(self._version_labels_dir(target_dataset_id, new_vid), exist_ok=True)
+
+            images_dir = self._dataset_images_dir(dataset_id)
+            target_images_dir = self._dataset_images_dir(target_dataset_id)
+            os.makedirs(target_images_dir, exist_ok=True)
+
+            seen = set()
+            for image_id in image_ids:
+                if image_id in seen:
+                    continue
+                seen.add(image_id)
+
+                source = images.get(image_id)
+                if not source:
+                    skipped.append({"image_id": image_id, "reason": "image not found"})
+                    continue
+
+                source_path = os.path.join(images_dir, source["filename"])
+                image = cv2.imread(source_path, cv2.IMREAD_UNCHANGED)
+                if image is None:
+                    skipped.append({"image_id": image_id, "reason": "failed to read image"})
+                    continue
+
+                height, width = image.shape[:2]
+                if mode == "static":
+                    left_px = int(round(width * crop_left_ratio))
+                    top_px = int(round(height * crop_top_ratio))
+                    right_px = int(round(width * crop_right_ratio))
+                    bottom_px = int(round(height * crop_bottom_ratio))
+                    if left_px < 0 or top_px < 0 or right_px > width or bottom_px > height:
+                        skipped.append({"image_id": image_id, "reason": "crop rectangle is outside image bounds"})
+                        continue
+                    if right_px <= left_px or bottom_px <= top_px:
+                        skipped.append({"image_id": image_id, "reason": "crop rectangle is too small"})
+                        continue
+                    crops = [
+                        ("static", image[top_px:bottom_px, left_px:right_px]),
+                    ]
+                else:
+                    split_x_px = int(round(width * split_x_ratio))
+                    split_y_px = int(round(height * split_y_ratio))
+                    if split_x_px <= 0 or split_x_px >= width:
+                        skipped.append({"image_id": image_id, "reason": "vertical split is outside image bounds"})
+                        continue
+                    if split_y_px <= 0 or split_y_px >= height:
+                        skipped.append({"image_id": image_id, "reason": "horizontal split is outside image bounds"})
+                        continue
+
+                if mode != "static":
+                    if mode == "vertical":
+                        crops = [
+                            ("left", image[:, :split_x_px]),
+                            ("right", image[:, split_x_px:]),
+                        ]
+                    elif mode == "horizontal":
+                        crops = [
+                            ("top", image[:split_y_px, :]),
+                            ("bottom", image[split_y_px:, :]),
+                        ]
+                    else:
+                        crops = [
+                            ("top_left", image[:split_y_px, :split_x_px]),
+                            ("top_right", image[:split_y_px, split_x_px:]),
+                            ("bottom_left", image[split_y_px:, :split_x_px]),
+                            ("bottom_right", image[split_y_px:, split_x_px:]),
+                        ]
+
+                base_name = os.path.splitext(source.get("original_name") or source.get("filename") or "image")[0]
+                safe_base = secure_filename(base_name) or "image"
+                for label, crop in crops:
+                    crop_id = str(uuid.uuid4())
+                    filename = f"{crop_id}.jpg"
+                    abs_path = os.path.join(target_images_dir, filename)
+                    output_crop = crop
+                    if output_crop.ndim == 3 and output_crop.shape[2] == 4:
+                        output_crop = cv2.cvtColor(output_crop, cv2.COLOR_BGRA2BGR)
+                    ok = cv2.imwrite(abs_path, output_crop, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
+                    if not ok:
+                        skipped.append({"image_id": image_id, "reason": f"failed to write {label} crop"})
+                        continue
+
+                    crop_h, crop_w = output_crop.shape[:2]
+                    item = {
+                        "id": crop_id,
+                        "filename": filename,
+                        "original_name": f"{safe_base}_crop_{label}.jpg",
+                        "uploaded_at": _utc_now(),
+                        "width": int(crop_w),
+                        "height": int(crop_h),
+                        "source_image_id": image_id,
+                        "transform": {
+                            "type": "crop",
+                            "mode": mode,
+                            "part": label,
+                            "split_x": split_x_ratio,
+                            "split_y": split_y_ratio,
+                            "crop_left": crop_left_ratio,
+                            "crop_top": crop_top_ratio,
+                            "crop_right": crop_right_ratio,
+                            "crop_bottom": crop_bottom_ratio,
+                        },
+                    }
+                    target_dataset["images"][crop_id] = item
+                    created.append(item)
+                    
+                    if create_new_dataset:
+                        cl, ct, cr, cb = crop_left_ratio, crop_top_ratio, crop_right_ratio, crop_bottom_ratio
+                        if mode == "vertical":
+                            if label == "left":
+                                cl, cr, ct, cb = 0.0, split_x_ratio, 0.0, 1.0
+                            elif label == "right":
+                                cl, cr, ct, cb = split_x_ratio, 1.0, 0.0, 1.0
+                        elif mode == "horizontal":
+                            if label == "top":
+                                cl, cr, ct, cb = 0.0, 1.0, 0.0, split_y_ratio
+                            elif label == "bottom":
+                                cl, cr, ct, cb = 0.0, 1.0, split_y_ratio, 1.0
+                        elif mode == "grid":
+                            if label == "top_left":
+                                cl, cr, ct, cb = 0.0, split_x_ratio, 0.0, split_y_ratio
+                            elif label == "top_right":
+                                cl, cr, ct, cb = split_x_ratio, 1.0, 0.0, split_y_ratio
+                            elif label == "bottom_left":
+                                cl, cr, ct, cb = 0.0, split_x_ratio, split_y_ratio, 1.0
+                            elif label == "bottom_right":
+                                cl, cr, ct, cb = split_x_ratio, 1.0, split_y_ratio, 1.0
+                                
+                        for src_vid, new_vid in version_id_map.items():
+                            src_label_file = os.path.join(self._version_labels_dir(dataset_id, src_vid), f"{image_id}.txt")
+                            annots = self._read_annotations_from_file(src_label_file)
+                            if annots:
+                                new_annots = self._recalculate_annotations(annots, width, height, cl, ct, cr, cb)
+                                if new_annots:
+                                    lines = self._annotations_to_lines(new_annots, {c["id"] for c in target_dataset["classes"]})
+                                    new_label_file = os.path.join(self._version_labels_dir(target_dataset_id, new_vid), f"{crop_id}.txt")
+                                    with open(new_label_file, "w", encoding="utf-8") as f:
+                                        f.write("\n".join(lines) + "\n")
+
+            dataset["updated_at"] = _utc_now()
+            if create_new_dataset:
+                target_dataset["updated_at"] = _utc_now()
+            self._save_registry(data)
+
+        return {
+            "mode": mode,
+            "split_x": split_x_ratio,
+            "split_y": split_y_ratio,
+            "crop_left": crop_left_ratio,
+            "crop_top": crop_top_ratio,
+            "crop_right": crop_right_ratio,
+            "crop_bottom": crop_bottom_ratio,
+            "created_count": len(created),
+            "created": created,
+            "skipped": skipped,
+            "target_dataset_id": target_dataset_id,
+        }
 
     def list_images(self, dataset_id: str) -> List[Dict[str, Any]]:
         with self._lock:
@@ -549,6 +814,76 @@ class TrainingStore:
                 raise ValueError("w and h must be > 0")
             lines.append(f"{cid} {x:.6f} {y:.6f} {w:.6f} {h:.6f}")
         return lines
+
+    @staticmethod
+    def _recalculate_annotations(
+        annotations: List[Dict[str, Any]], 
+        img_w: int, 
+        img_h: int, 
+        crop_left: float, 
+        crop_top: float, 
+        crop_right: float, 
+        crop_bottom: float
+    ) -> List[Dict[str, Any]]:
+        result = []
+        crop_abs_left = crop_left * img_w
+        crop_abs_top = crop_top * img_h
+        crop_abs_right = crop_right * img_w
+        crop_abs_bottom = crop_bottom * img_h
+        crop_w = crop_abs_right - crop_abs_left
+        crop_h = crop_abs_bottom - crop_abs_top
+        
+        if crop_w <= 0 or crop_h <= 0:
+            return []
+
+        for ann in annotations:
+            # Denormalize to absolute pixels
+            abs_cx = ann["x"] * img_w
+            abs_cy = ann["y"] * img_h
+            abs_w = ann["w"] * img_w
+            abs_h = ann["h"] * img_h
+            
+            box_left = abs_cx - abs_w / 2
+            box_top = abs_cy - abs_h / 2
+            box_right = abs_cx + abs_w / 2
+            box_bottom = abs_cy + abs_h / 2
+            
+            # Intersection with crop box
+            inter_left = max(box_left, crop_abs_left)
+            inter_top = max(box_top, crop_abs_top)
+            inter_right = min(box_right, crop_abs_right)
+            inter_bottom = min(box_bottom, crop_abs_bottom)
+            
+            # Completely outside
+            if inter_left >= inter_right or inter_top >= inter_bottom:
+                continue
+                
+            # New relative absolute coordinates inside the crop box
+            new_box_left = inter_left - crop_abs_left
+            new_box_top = inter_top - crop_abs_top
+            new_box_right = inter_right - crop_abs_left
+            new_box_bottom = inter_bottom - crop_abs_top
+            
+            # Renormalize to 0.0 - 1.0 based on crop dimensions
+            new_w = (new_box_right - new_box_left) / crop_w
+            new_h = (new_box_bottom - new_box_top) / crop_h
+            new_cx = (new_box_left + new_box_right) / 2 / crop_w
+            new_cy = (new_box_top + new_box_bottom) / 2 / crop_h
+            
+            new_cx = max(0.0, min(1.0, new_cx))
+            new_cy = max(0.0, min(1.0, new_cy))
+            new_w = max(0.0, min(1.0, new_w))
+            new_h = max(0.0, min(1.0, new_h))
+            
+            if new_w > 0 and new_h > 0:
+                result.append({
+                    "class_id": ann["class_id"],
+                    "x": new_cx,
+                    "y": new_cy,
+                    "w": new_w,
+                    "h": new_h
+                })
+        return result
 
     def get_annotations_map(
         self, dataset_id: str, version_id: str, image_ids: List[str]

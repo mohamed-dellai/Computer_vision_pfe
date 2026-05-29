@@ -1,12 +1,73 @@
 from flask import Blueprint, jsonify, request, Response
 import os
 import uuid
+import json
+import threading
+from datetime import datetime
 import persistence
 from worker import TrackingWorker
 from config import RTSPConfig, TrackerConfig, JobConfig
 
+_PRESETS_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'coord_presets.json')
+_presets_lock = threading.Lock()
+
+
+def _load_presets():
+    if not os.path.exists(_PRESETS_FILE):
+        return []
+    try:
+        with open(_PRESETS_FILE, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_presets(presets):
+    os.makedirs(os.path.dirname(_PRESETS_FILE), exist_ok=True)
+    with open(_PRESETS_FILE, 'w') as f:
+        json.dump(presets, f, indent=2)
+
+
 def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
     bp = Blueprint('jobs', __name__, url_prefix='/jobs')
+
+    # ── Presets ────────────────────────────────────────────────────────────────
+
+    @bp.route('/presets', methods=['GET'])
+    def list_presets():
+        with _presets_lock:
+            return jsonify(_load_presets())
+
+    @bp.route('/presets', methods=['POST'])
+    def create_preset():
+        data = request.json or {}
+        if not data.get('name', '').strip():
+            return jsonify({'error': 'name is required'}), 400
+        preset = {
+            'id': str(uuid.uuid4()),
+            'name': data['name'].strip(),
+            'camera_id': data.get('camera_id') or None,
+            'rtsp_width': data.get('rtsp_width') or None,
+            'rtsp_height': data.get('rtsp_height') or None,
+            'crop_coords': data.get('crop_coords') or None,
+            'line_coords': data.get('line_coords') or None,
+            'created_at': datetime.utcnow().isoformat(),
+        }
+        with _presets_lock:
+            presets = _load_presets()
+            presets.append(preset)
+            _save_presets(presets)
+        return jsonify(preset), 201
+
+    @bp.route('/presets/<preset_id>', methods=['DELETE'])
+    def delete_preset(preset_id):
+        with _presets_lock:
+            presets = _load_presets()
+            presets = [p for p in presets if p['id'] != preset_id]
+            _save_presets(presets)
+        return jsonify({'deleted': preset_id})
+
+    # ── Jobs ───────────────────────────────────────────────────────────────────
 
     @bp.route('', methods=['GET'])
     def list_jobs():
@@ -19,7 +80,7 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         data = request.json or {}
         camera_id = data.get('camera_id')
         model_name = data.get('model')
-        
+
         if not camera_id or camera_id not in cameras:
             return jsonify({'error': 'unknown camera_id'}), 400
         if not model_name or model_name not in available_models_func():
@@ -28,7 +89,7 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         try:
             rtsp_config = RTSPConfig.from_dict(data)
             tracker_config = TrackerConfig.from_dict(data)
-            
+
             config = JobConfig(
                 camera_id=camera_id,
                 model_name=model_name,
@@ -37,7 +98,8 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
                 iou=float(data.get('iou', 0.7)),
                 rtsp_config=rtsp_config,
                 tracker_config=tracker_config,
-                line_coords=data.get('line_coords')
+                line_coords=data.get('line_coords'),
+                crop_coords=data.get('crop_coords')
             )
         except Exception as e:
             return jsonify({'error': f'Invalid configuration: {str(e)}'}), 400
@@ -45,12 +107,12 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         jid = str(uuid.uuid4())
         worker = TrackingWorker(config)
         worker.start()
-        
+
         with jobs_lock:
             job_data = config.to_dict()
             job_data['worker'] = worker
             jobs[jid] = job_data
-            
+
         persistence.save_state(cameras, jobs, jobs_lock)
         response = config.to_dict()
         response['job_id'] = jid
@@ -81,6 +143,7 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         j = jobs.get(job_id)
         if not j:
             return 'unknown job', 404
+
         def generator():
             worker = j['worker']
             import time
@@ -91,11 +154,12 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
                 else:
                     frame = getattr(worker, 'latest_jpeg', None)
                     time.sleep(0.05)
-                
+
                 if frame:
                     yield (b'--frame\r\n'
-                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             yield b''
+
         return Response(generator(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
     return bp

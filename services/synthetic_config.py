@@ -152,6 +152,10 @@ class AugmentationConfig:
     jpeg_artifact_prob: float = 0.2
     jpeg_quality_range: Tuple[int, int] = (60, 90)
 
+    # Color Harmonization
+    harmonize_color: bool = True
+    harmonize_strength: float = 0.5  # 0.0 to 1.0 (how much to blend towards background)
+
     def validate(self) -> None:
         for prob, name in (
             (self.motion_blur_prob, "motion_blur_prob"),
@@ -159,6 +163,7 @@ class AugmentationConfig:
             (self.noise_prob, "noise_prob"),
             (self.hue_shift_prob, "hue_shift_prob"),
             (self.jpeg_artifact_prob, "jpeg_artifact_prob"),
+            (self.harmonize_strength, "harmonize_strength"),
         ):
             if not (0.0 <= prob <= 1.0):
                 raise ValueError(f"AugmentationConfig.{name} must be in [0, 1]")
@@ -175,6 +180,8 @@ class AugmentationConfig:
             "hue_shift_range": list(self.hue_shift_range),
             "jpeg_artifact_prob": self.jpeg_artifact_prob,
             "jpeg_quality_range": list(self.jpeg_quality_range),
+            "harmonize_color": self.harmonize_color,
+            "harmonize_strength": self.harmonize_strength,
         }
 
     @classmethod
@@ -190,6 +197,8 @@ class AugmentationConfig:
             hue_shift_range=tuple(d.get("hue_shift_range", [-10, 10])),                       # type: ignore[arg-type]
             jpeg_artifact_prob=float(d.get("jpeg_artifact_prob", 0.2)),
             jpeg_quality_range=tuple(d.get("jpeg_quality_range", [60, 90])),                  # type: ignore[arg-type]
+            harmonize_color=bool(d.get("harmonize_color", True)),
+            harmonize_strength=float(d.get("harmonize_strength", 0.5)),
         )
 
 

@@ -61,7 +61,11 @@
 
       <!-- Calibration panel -->
       <div id="calibrate-panel" class="hidden" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px dashed var(--accent);">
-        <p class="hint" style="color:var(--accent); font-weight:500; margin-bottom:8px;">Click anywhere on the canvas to preview the product.</p>
+        <p class="hint" style="color:var(--accent); font-weight:500; margin-bottom:4px;">Click anywhere on the canvas to preview the product.</p>
+        <p class="hint" style="font-size:11px; margin-bottom:8px; line-height: 1.4;">
+          <b>Shortcuts (Hold Shift to reverse):</b><br>
+          <b>A</b>: Pitch X &nbsp; <b>E</b>: Yaw Y &nbsp; <b>Z</b>: Roll Z &nbsp;|&nbsp; <b>+ / -</b>: Scale
+        </p>
         <label class="field-label">Test Product</label>
         <select id="calib-product" class="text-input" style="width:100%; margin-bottom:10px;"></select>
         
@@ -126,6 +130,11 @@
     <section class="card" id="sec-aug">
       <h3 class="card-title"><span class="step-badge">6</span> Augmentations</h3>
       <div class="aug-row">
+        <label class="toggle-label"><input type="checkbox" id="aug-harmonize" checked/> Color Harmonize</label>
+        <input type="range" id="aug-harmonize-strength" min="0" max="1" step="0.05" value="0.5" class="mini-range"/>
+        <span class="value-badge" id="val-harmonize">50%</span>
+      </div>
+      <div class="aug-row">
         <label class="toggle-label"><input type="checkbox" id="aug-blur" checked/> Motion Blur</label>
         <input type="range" id="aug-blur-prob" min="0" max="1" step="0.05" value="0.3" class="mini-range"/>
         <span class="value-badge" id="val-blur">30%</span>
@@ -151,8 +160,8 @@
         <span class="value-badge" id="val-jpeg">20%</span>
       </div>
       <script>
-        ['blur','bright','noise','hue','jpeg'].forEach(id=>{
-          const el=document.getElementById(`aug-${id}-prob`);
+        ['harmonize', 'blur','bright','noise','hue','jpeg'].forEach(id=>{
+          const el=document.getElementById(id === 'harmonize' ? `aug-${id}-strength` : `aug-${id}-prob`);
           el.oninput=()=>document.getElementById(`val-${id}`).textContent=Math.round(el.value*100)+'%';
         });
       </script>
@@ -258,8 +267,8 @@
     </div>
     <div class="model-upload-zone" onclick="triggerModelUpload(this)">
       <span>+ Add 3D model files (.obj .glb .stl .ply)</span>
-      <span class="format-tag-sm">NOT images — 3D models only</span>
-      <input type="file" class="model-file-input" accept=".obj,.glb,.gltf,.stl,.ply,.dae" multiple hidden/>
+      <span class="format-tag-sm">Upload models AND their materials/textures (.mtl, .png, .jpg) together</span>
+      <input type="file" class="model-file-input" accept=".obj,.glb,.gltf,.stl,.ply,.dae,.mtl,.png,.jpg,.jpeg" multiple hidden/>
     </div>
     <div class="model-list"></div>
   </div>

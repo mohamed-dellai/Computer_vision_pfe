@@ -142,6 +142,10 @@
   background: var(--text-secondary);
 }
 
+.action-btn.danger {
+  background: var(--danger);
+}
+
 .action-btn.record {
   background: var(--primary);
 }

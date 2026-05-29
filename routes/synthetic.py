@@ -20,7 +20,7 @@ from werkzeug.utils import secure_filename
 from services.synthetic_config import SyntheticConfig
 from services.synthetic_generator import SyntheticDatasetGenerator
 
-ALLOWED_MODEL_EXTS  = {".obj", ".glb", ".gltf", ".stl", ".ply", ".dae"}
+ALLOWED_MODEL_EXTS  = {".obj", ".glb", ".gltf", ".stl", ".ply", ".dae", ".mtl", ".png", ".jpg", ".jpeg"}
 ALLOWED_IMAGE_EXTS  = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
@@ -83,29 +83,47 @@ def create_synthetic_blueprint(synthetic_dir: str, store=None):
 
     @bp.route("/upload/model", methods=["POST"])
     def upload_model():
-        """Upload a 3D model file (.obj, .glb, .stl, .ply …)."""
-        f = request.files.get("file") or request.files.get("model")
-        if not f or not f.filename:
+        """Upload 3D model files (.obj, .glb, .mtl, .png …). Groups them in a UUID folder."""
+        files = request.files.getlist("files")
+        if not files:
+            # Fallback for single file
+            f = request.files.get("file") or request.files.get("model")
+            if f:
+                files = [f]
+        
+        if not files or not files[0].filename:
             return jsonify({"error": "no file provided"}), 400
-        # Use original filename for extension detection (secure_filename may strip it)
-        original_name = f.filename
-        _, ext = os.path.splitext(original_name)
-        if ext.lower() not in ALLOWED_MODEL_EXTS:
-            return jsonify({
-                "error": f"Unsupported format '{ext}'. 3D model must be one of: "
-                         f"{', '.join(sorted(ALLOWED_MODEL_EXTS))}"
-            }), 400
-        safe = secure_filename(original_name) or f"model{ext.lower()}"
-        file_id = str(uuid.uuid4())
-        filename = f"{file_id}_{safe}"
-        dest = os.path.join(models_dir, filename)
-        f.save(dest)
-        return jsonify({
-            "id": file_id,
-            "filename": filename,
-            "original_name": original_name,
-            "path": dest,
-        }), 201
+
+        group_id = str(uuid.uuid4())
+        group_dir = os.path.join(models_dir, group_id)
+        os.makedirs(group_dir, exist_ok=True)
+
+        saved_files = []
+        for f in files:
+            if not f.filename:
+                continue
+            original_name = f.filename
+            _, ext = os.path.splitext(original_name)
+            if ext.lower() not in ALLOWED_MODEL_EXTS:
+                continue # skip unsupported files instead of failing entire batch
+
+            safe = secure_filename(original_name) or f"model{ext.lower()}"
+            dest = os.path.join(group_dir, safe)
+            f.save(dest)
+            
+            # The filename we return includes the UUID folder so it can be deleted/referenced
+            relative_path = f"{group_id}/{safe}"
+            saved_files.append({
+                "id": group_id,
+                "filename": relative_path,
+                "original_name": original_name,
+                "path": dest,
+            })
+
+        if not saved_files:
+            return jsonify({"error": "No valid supported files uploaded"}), 400
+
+        return jsonify({"saved_files": saved_files}), 201
 
     @bp.route("/uploads", methods=["GET"])
     def list_uploads():
@@ -115,11 +133,17 @@ def create_synthetic_blueprint(synthetic_dir: str, store=None):
             for fn in sorted(os.listdir(backgrounds_dir))
             if os.path.splitext(fn)[1].lower() in ALLOWED_IMAGE_EXTS
         ]
-        models = [
-            {"filename": fn, "path": os.path.join(models_dir, fn)}
-            for fn in sorted(os.listdir(models_dir))
-            if os.path.splitext(fn)[1].lower() in ALLOWED_MODEL_EXTS
-        ]
+        models = []
+        for root, _, files in os.walk(models_dir):
+            for fn in sorted(files):
+                if os.path.splitext(fn)[1].lower() in ALLOWED_MODEL_EXTS:
+                    rel_path = os.path.relpath(os.path.join(root, fn), models_dir)
+                    # Use forward slash for consistency in URLs
+                    rel_path = rel_path.replace("\\", "/")
+                    models.append({
+                        "filename": rel_path,
+                        "path": os.path.join(root, fn)
+                    })
         return jsonify({"backgrounds": backgrounds, "models": models})
 
     @bp.route("/uploads/background/<filename>", methods=["DELETE"])
@@ -130,13 +154,16 @@ def create_synthetic_blueprint(synthetic_dir: str, store=None):
         os.remove(path)
         return jsonify({"deleted": filename})
 
-    @bp.route("/uploads/model/<filename>", methods=["DELETE"])
-    def delete_model(filename):
-        path = os.path.join(models_dir, secure_filename(filename))
+    @bp.route("/uploads/model/<path:filepath>", methods=["DELETE"])
+    def delete_model(filepath):
+        # Prevent path traversal
+        if ".." in filepath or filepath.startswith("/"):
+            return jsonify({"error": "invalid path"}), 400
+        path = os.path.join(models_dir, filepath)
         if not os.path.exists(path):
             return jsonify({"error": "not found"}), 404
         os.remove(path)
-        return jsonify({"deleted": filename})
+        return jsonify({"deleted": filepath})
 
     # ------------------------------------------------------------------
     # Config endpoints

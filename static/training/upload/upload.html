@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 <link rel="stylesheet" href="/static/training/shared/training-common.css">
-<link rel="stylesheet" href="/static/training/upload/upload.css">
+<link rel="stylesheet" href="/static/training/upload/upload.css?v=20260524-5">
 </head>
 <body>
 <div class="app-layout">
@@ -72,14 +72,78 @@
           </div>
           <div id="video-import-status" class="muted"></div>
         </div>
+        <div class="image-filter-row">
+          <input id="image-name-filter" type="search" placeholder="Filter images by name" autocomplete="off" />
+          <span id="image-filter-count" class="muted"></span>
+        </div>
+        <div class="transform-picker-row">
+          <select id="transformation-select" aria-label="Transformations">
+            <option value="">Transformations</option>
+            <option value="crop">Crop</option>
+          </select>
+        </div>
         <div id="images-list" class="list-box"></div>
       </section>
     </div>
   </main>
 </div>
 
+<div id="crop-editor" class="crop-editor" hidden>
+  <div class="crop-editor-toolbar">
+    <div>
+      <div class="crop-editor-title">Crop Filtered Images</div>
+      <div id="crop-editor-scope" class="crop-editor-subtitle"></div>
+    </div>
+    <button id="crop-editor-close" class="crop-editor-close" type="button" aria-label="Close crop editor">Close</button>
+  </div>
+  <div class="crop-editor-main">
+    <div id="crop-stage" class="crop-stage">
+      <img id="crop-editor-img" alt="" />
+      <div id="crop-frame" class="crop-frame">
+        <div id="crop-box" class="crop-box">
+          <button class="crop-handle crop-handle-left" type="button" data-crop-handle="left" aria-label="Move left crop edge"></button>
+          <button class="crop-handle crop-handle-right" type="button" data-crop-handle="right" aria-label="Move right crop edge"></button>
+          <button class="crop-handle crop-handle-top" type="button" data-crop-handle="top" aria-label="Move top crop edge"></button>
+          <button class="crop-handle crop-handle-bottom" type="button" data-crop-handle="bottom" aria-label="Move bottom crop edge"></button>
+        </div>
+      </div>
+    </div>
+    <aside class="crop-editor-panel">
+      <div class="dimension-grid crop-editor-dimensions">
+        <div>
+          <span>Original</span>
+          <strong id="crop-original-size">-</strong>
+        </div>
+        <div>
+          <span>Cropped size</span>
+          <strong id="crop-output-size">-</strong>
+        </div>
+        <div>
+          <span>Creates</span>
+          <strong id="crop-created-count">-</strong>
+        </div>
+      </div>
+      <div class="crop-editor-dataset-opts">
+        <label class="checkbox-label">
+          <input type="checkbox" id="crop-create-dataset" checked> Create new dataset
+        </label>
+        <input type="text" id="crop-new-dataset-name" placeholder="Dataset name (optional)">
+      </div>
+      <button id="apply-crop-btn" class="btn btn-primary" type="button">Create Crops</button>
+      <div id="crop-editor-status" class="crop-editor-status"></div>
+    </aside>
+  </div>
+</div>
+
+<div id="image-viewer" class="image-viewer" hidden>
+  <button id="image-viewer-close" class="image-viewer-close" type="button" aria-label="Close fullscreen image">Close</button>
+  <img id="image-viewer-img" alt="" />
+  <div id="image-viewer-caption" class="image-viewer-caption"></div>
+</div>
+
 <script src="/static/training/shared/training-api.js"></script>
-<script src="/static/training/upload/upload-video.js"></script>
-<script src="/static/training/upload/upload.js"></script>
+<script src="/static/training/upload/upload-video.js?v=20260524-5"></script>
+<script src="/static/shared/crop_editor.js"></script>
+<script src="/static/training/upload/upload.js?v=20260524-5"></script>
 </body>
 </html>

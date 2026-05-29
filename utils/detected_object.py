@@ -31,7 +31,7 @@ class DetectedObject:
     ) -> None:
         url = endpoint or os.getenv(
             "MENU_OBJECT",
-            "http://pfebackend.coffenard.shop/menu/vision/detected-object"
+            "http://pfe.coffenard.shop/menu/vision/detected-object"
         )
         if not url:
             return

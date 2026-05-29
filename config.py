@@ -54,6 +54,7 @@ class JobConfig:
     rtsp_config: RTSPConfig
     tracker_config: TrackerConfig
     line_coords: Optional[List[int]] = None
+    crop_coords: Optional[List[int]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Returns a flat dictionary representation of the config."""
@@ -63,6 +64,7 @@ class JobConfig:
             'conf': self.conf,
             'iou': self.iou,
             'line_coords': self.line_coords,
+            'crop_coords': self.crop_coords,
             # Flatten RTSP config
             'rtsp_width': self.rtsp_config.width,
             'rtsp_height': self.rtsp_config.height,

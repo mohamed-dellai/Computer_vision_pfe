@@ -152,6 +152,29 @@ def create_training_blueprint(store, runner, autodistill_service=None, cameras=N
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
+    @bp.route("/datasets/<dataset_id>/images/transform/crop", methods=["POST"])
+    def transform_images_crop(dataset_id):
+        data = request.json or {}
+        try:
+            result = store.transform_images_crop(
+                dataset_id,
+                image_ids=data.get("image_ids") or [],
+                mode=data.get("mode") or "",
+                split_x=data.get("split_x"),
+                split_y=data.get("split_y"),
+                crop_left=data.get("crop_left"),
+                crop_top=data.get("crop_top"),
+                crop_right=data.get("crop_right"),
+                crop_bottom=data.get("crop_bottom"),
+                create_new_dataset=_to_bool(data.get("create_new_dataset"), default=False),
+                new_dataset_name=data.get("new_dataset_name"),
+            )
+            return jsonify(result), 201
+        except KeyError:
+            return jsonify({"error": "dataset not found"}), 404
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
     @bp.route("/datasets/<dataset_id>/images/<image_id>", methods=["DELETE"])
     def delete_image(dataset_id, image_id):
         try:

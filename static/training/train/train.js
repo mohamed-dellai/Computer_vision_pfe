@@ -10,6 +10,41 @@ const state = {
 };
 
 const t = window.TrainingShared;
+const AUGMENTATION_STORAGE_KEY = "training.augmentation.v1";
+const AUGMENTATION_DEFAULTS = {
+  hsv_h: 0.015,
+  hsv_s: 0.7,
+  hsv_v: 0.4,
+  degrees: 0,
+  translate: 0.1,
+  scale: 0.5,
+  shear: 0,
+  perspective: 0,
+  flipud: 0,
+  fliplr: 0.5,
+  mosaic: 1,
+  mixup: 0,
+  copy_paste: 0,
+  erasing: 0.4,
+  close_mosaic: 10,
+};
+const AUGMENTATION_INPUTS = {
+  hsv_h: "aug-hsv-h",
+  hsv_s: "aug-hsv-s",
+  hsv_v: "aug-hsv-v",
+  degrees: "aug-degrees",
+  translate: "aug-translate",
+  scale: "aug-scale",
+  shear: "aug-shear",
+  perspective: "aug-perspective",
+  flipud: "aug-flipud",
+  fliplr: "aug-fliplr",
+  mosaic: "aug-mosaic",
+  mixup: "aug-mixup",
+  copy_paste: "aug-copy-paste",
+  erasing: "aug-erasing",
+  close_mosaic: "aug-close-mosaic",
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   bindEvents();
@@ -20,10 +55,26 @@ function bindEvents() {
   document.getElementById("train-dataset").addEventListener("change", onDatasetChange);
   document.getElementById("start-training-btn").addEventListener("click", startTraining);
   document.getElementById("stop-training-btn").addEventListener("click", stopTraining);
+  document.getElementById("aug-enabled").addEventListener("change", onAugmentationChange);
+  document.getElementById("aug-defaults-btn").addEventListener("click", () => {
+    setAugmentationValues(AUGMENTATION_DEFAULTS);
+    document.getElementById("aug-enabled").checked = true;
+    onAugmentationChange();
+  });
+  document.getElementById("aug-zero-btn").addEventListener("click", () => {
+    const values = Object.fromEntries(Object.keys(AUGMENTATION_DEFAULTS).map((key) => [key, 0]));
+    setAugmentationValues(values);
+    document.getElementById("aug-enabled").checked = true;
+    onAugmentationChange();
+  });
+  Object.values(AUGMENTATION_INPUTS).forEach((id) => {
+    document.getElementById(id).addEventListener("input", saveAugmentationSettings);
+  });
 }
 
 async function initialize() {
   try {
+    loadAugmentationSettings();
     state.datasets = await t.fetchDatasets();
     state.selectedDatasetId = t.resolveDatasetId(state.datasets, t.getStoredDatasetId());
     t.setStoredDatasetId(state.selectedDatasetId);
@@ -35,6 +86,67 @@ async function initialize() {
   } catch (e) {
     t.notify(e.message);
   }
+}
+
+function loadAugmentationSettings() {
+  try {
+    const raw = localStorage.getItem(AUGMENTATION_STORAGE_KEY);
+    if (!raw) {
+      setAugmentationValues(AUGMENTATION_DEFAULTS);
+      onAugmentationChange();
+      return;
+    }
+    const saved = JSON.parse(raw);
+    document.getElementById("aug-enabled").checked = !!saved.enabled;
+    setAugmentationValues({ ...AUGMENTATION_DEFAULTS, ...(saved.values || {}) });
+    onAugmentationChange();
+  } catch (e) {
+    setAugmentationValues(AUGMENTATION_DEFAULTS);
+    onAugmentationChange();
+  }
+}
+
+function saveAugmentationSettings() {
+  const settings = {
+    enabled: document.getElementById("aug-enabled").checked,
+    values: readAugmentationValues(),
+  };
+  localStorage.setItem(AUGMENTATION_STORAGE_KEY, JSON.stringify(settings));
+}
+
+function onAugmentationChange() {
+  const enabled = document.getElementById("aug-enabled").checked;
+  document.getElementById("augmentation-controls").classList.toggle("disabled", !enabled);
+  Object.values(AUGMENTATION_INPUTS).forEach((id) => {
+    document.getElementById(id).disabled = !enabled;
+  });
+  saveAugmentationSettings();
+}
+
+function setAugmentationValues(values) {
+  Object.entries(AUGMENTATION_INPUTS).forEach(([key, id]) => {
+    document.getElementById(id).value = values[key];
+  });
+}
+
+function readAugmentationValues() {
+  const values = {};
+  Object.entries(AUGMENTATION_INPUTS).forEach(([key, id]) => {
+    const input = document.getElementById(id);
+    const fallback = AUGMENTATION_DEFAULTS[key];
+    const parsed = key === "close_mosaic" ? parseInt(input.value, 10) : parseFloat(input.value);
+    values[key] = Number.isFinite(parsed) ? parsed : fallback;
+  });
+  return values;
+}
+
+function buildAugmentationPayload() {
+  const enabled = document.getElementById("aug-enabled").checked;
+  if (!enabled) return null;
+  return {
+    enabled: true,
+    ...readAugmentationValues(),
+  };
 }
 
 function renderDatasetSelect() {
@@ -103,6 +215,11 @@ async function startTraining() {
     split_test: parseFloat(document.getElementById("split-test").value) || 0.1,
     seed: 42,
   };
+  const augmentation = buildAugmentationPayload();
+  if (augmentation) {
+    payload.augmentation = augmentation;
+  }
+  saveAugmentationSettings();
 
   try {
     const job = await t.api("/training/jobs/start", {

@@ -17,6 +17,40 @@ def _utc_now() -> str:
 
 class TrainingRunner:
     PRESET_MODELS = {"yolov8n.pt", "yolov8s.pt", "yolov8m.pt", "yolov8l.pt", "yolov8x.pt"}
+    AUGMENTATION_DEFAULTS = {
+        "hsv_h": 0.015,
+        "hsv_s": 0.7,
+        "hsv_v": 0.4,
+        "degrees": 0.0,
+        "translate": 0.1,
+        "scale": 0.5,
+        "shear": 0.0,
+        "perspective": 0.0,
+        "flipud": 0.0,
+        "fliplr": 0.5,
+        "mosaic": 1.0,
+        "mixup": 0.0,
+        "copy_paste": 0.0,
+        "erasing": 0.4,
+        "close_mosaic": 10,
+    }
+    AUGMENTATION_RANGES = {
+        "hsv_h": (0.0, 1.0),
+        "hsv_s": (0.0, 1.0),
+        "hsv_v": (0.0, 1.0),
+        "degrees": (0.0, 180.0),
+        "translate": (0.0, 1.0),
+        "scale": (0.0, 10.0),
+        "shear": (0.0, 180.0),
+        "perspective": (0.0, 1.0),
+        "flipud": (0.0, 1.0),
+        "fliplr": (0.0, 1.0),
+        "mosaic": (0.0, 1.0),
+        "mixup": (0.0, 1.0),
+        "copy_paste": (0.0, 1.0),
+        "erasing": (0.0, 1.0),
+        "close_mosaic": (0, 1000),
+    }
 
     def __init__(self, base_dir: str, models_dir: str, store):
         self.base_dir = base_dir
@@ -101,6 +135,45 @@ class TrainingRunner:
         if abs(total - 1.0) > 1e-6:
             raise ValueError("split ratios must sum to 1.0")
 
+    def _parse_augmentation_config(self, payload: Dict[str, object]) -> Optional[Dict[str, object]]:
+        raw = payload.get("augmentation")
+        if raw in (None, "", False):
+            return None
+        if not isinstance(raw, dict):
+            raise ValueError("augmentation must be an object")
+
+        enabled = raw.get("enabled", True)
+        if isinstance(enabled, str):
+            enabled = enabled.strip().lower() in {"1", "true", "yes", "on"}
+        if not enabled:
+            return None
+
+        unknown = sorted(k for k in raw.keys() if k not in self.AUGMENTATION_DEFAULTS and k != "enabled")
+        if unknown:
+            raise ValueError(f"unsupported augmentation option(s): {', '.join(unknown)}")
+
+        parsed = {}
+        for key, default in self.AUGMENTATION_DEFAULTS.items():
+            value = raw.get(key, default)
+            if value in (None, ""):
+                value = default
+
+            min_value, max_value = self.AUGMENTATION_RANGES[key]
+            try:
+                if isinstance(default, int):
+                    parsed_value = int(value)
+                else:
+                    parsed_value = float(value)
+            except Exception as exc:
+                raise ValueError(f"augmentation.{key} must be a number") from exc
+
+            if parsed_value < min_value or parsed_value > max_value:
+                raise ValueError(f"augmentation.{key} must be between {min_value} and {max_value}")
+
+            parsed[key] = parsed_value
+
+        return parsed
+
     def start_job(self, payload: Dict[str, object]) -> Dict[str, object]:
         dataset_id = str(payload.get("dataset_id") or "")
         version_id = str(payload.get("annotation_version_id") or "")
@@ -112,6 +185,7 @@ class TrainingRunner:
         split_val = float(payload.get("split_val", 0.1))
         split_test = float(payload.get("split_test", 0.1))
         seed = int(payload.get("seed", 42))
+        augmentation = self._parse_augmentation_config(payload)
 
         self._validate_ratios(split_train, split_val, split_test)
         model_path = self._resolve_model_source(model_source)
@@ -181,6 +255,9 @@ class TrainingRunner:
                 f"project={runs_dir}",
                 "name=run",
             ]
+            if augmentation:
+                for key, value in augmentation.items():
+                    cmd.append(f"{key}={value}")
 
             job = {
                 "id": job_id,
@@ -195,6 +272,7 @@ class TrainingRunner:
                 "split_val": split_val,
                 "split_test": split_test,
                 "seed": seed,
+                "augmentation": augmentation,
                 "status": "starting",
                 "progress_pct": 0.0,
                 "epoch_current": 0,

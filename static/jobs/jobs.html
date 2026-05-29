@@ -45,115 +45,343 @@
     </header>
 
     <div class="content-grid">
+
+      <!-- ── Wizard Card ─────────────────────────────────────────── -->
       <div class="card job-form-card">
-        <h3>Start New Job</h3>
-        
-        <div class="form-group">
-          <label>Select Camera</label>
-          <select id="camera-select">
-            <option value="" disabled selected>Loading cameras...</option>
-          </select>
+        <div class="form-card-header">
+          <h3>New Job Configuration</h3>
         </div>
 
-        <div class="form-group">
-          <label>Select Model</label>
-          <select id="model-select">
-            <option value="" disabled selected>Loading models...</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Tracker Configuration</label>
-          <select id="tracker-select">
-            <option value="bytetrack.yaml" selected>ByteTrack (Default)</option>
-            <option value="botsort.yaml">BoTSORT (Default)</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <div class="col">
-            <label>Confidence</label>
-            <input type="number" id="conf" value="0.25" step="0.01" min="0" max="1">
-          </div>
-          <div class="col">
-            <label>IOU Threshold</label>
-            <input type="number" id="iou" value="0.7" step="0.01" min="0" max="1">
-          </div>
-        </div>
-
-        <!-- Advanced Settings Section -->
-        <div class="settings-divider"></div>
-        <div class="settings-section-title">Advanced Settings</div>
-
-        <!-- RTSP Configuration -->
-        <div class="config-group">
-          <div class="config-label">RTSP Stream</div>
-          <div class="row" style="margin-bottom:10px;">
-            <div class="col">
-              <label>Width</label>
-              <input type="number" id="rtsp_width" placeholder="camera default">
-            </div>
-            <div class="col">
-              <label>Height</label>
-              <input type="number" id="rtsp_height" placeholder="camera default">
+        <!-- Presets Toolbar -->
+        <div class="preset-toolbar" id="preset-toolbar">
+          <div class="preset-toolbar-inner">
+            <span class="preset-toolbar-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Presets
+            </span>
+            <div class="preset-controls">
+              <select id="preset-select" class="preset-select">
+                <option value="">Select a saved preset…</option>
+              </select>
+              <button id="load-preset-btn" class="btn-preset btn-preset-load" title="Load preset">Load</button>
+              <button id="delete-preset-btn" class="btn-preset btn-preset-del" title="Delete preset">×</button>
             </div>
           </div>
-          
-          <div class="row" style="margin-bottom:10px;">
-            <div class="col">
-              <label>FPS</label>
-              <input type="number" id="rtsp_fps" value="15">
-            </div>
-            <div class="col">
-              <label>Buffer Size</label>
-              <input type="number" id="rtsp_buffer_size" value="1">
-            </div>
-          </div>
-
-          <div class="row" style="margin-bottom:10px;">
-            <div class="col">
-              <label>Reconnect Delay (s)</label>
-              <input type="number" id="rtsp_reconnect_delay" value="3.0" step="0.5">
-            </div>
-            <div class="col">
-              <label>Read Timeout (s)</label>
-              <input type="number" id="rtsp_read_timeout" value="5.0" step="0.5">
-            </div>
+          <div id="preset-warning" class="preset-warning" hidden>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span id="preset-warning-text"></span>
           </div>
         </div>
 
-        <!-- Counting Line -->
-        <div class="config-group">
-          <div class="config-label">Counting Line</div>
-          <label class="checkbox-label">
-            <input type="checkbox" id="line-counting-check">
-            <span>Enable Counting Line</span>
-          </label>
-          <div id="line-coords-display" style="display:none; margin-top: 8px; padding: 8px; background: var(--bg-body); border-radius: 6px; font-size: 0.875rem; color: var(--text-secondary);">
-            <span>Line:</span> <span id="coords-values">Not set</span>
+        <!-- Step Indicator -->
+        <div class="wiz-stepper" id="wiz-stepper">
+          <div class="wiz-step active" data-step="1" title="Camera">
+            <div class="wiz-step-circle">
+              <span class="step-num-label">1</span>
+              <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="wiz-step-label">Camera</div>
+          </div>
+          <div class="wiz-connector"></div>
+          <div class="wiz-step locked" data-step="2" title="Model">
+            <div class="wiz-step-circle">
+              <span class="step-num-label">2</span>
+              <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="wiz-step-label">Model</div>
+          </div>
+          <div class="wiz-connector"></div>
+          <div class="wiz-step locked" data-step="3" title="Tracker">
+            <div class="wiz-step-circle">
+              <span class="step-num-label">3</span>
+              <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="wiz-step-label">Tracker</div>
+          </div>
+          <div class="wiz-connector"></div>
+          <div class="wiz-step locked" data-step="4" title="Resolution">
+            <div class="wiz-step-circle">
+              <span class="step-num-label">4</span>
+              <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="wiz-step-label">Resolution</div>
+          </div>
+          <div class="wiz-connector"></div>
+          <div class="wiz-step locked" data-step="5" title="Crop Area">
+            <div class="wiz-step-circle">
+              <span class="step-num-label">5</span>
+              <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="wiz-step-label">Crop</div>
+          </div>
+          <div class="wiz-connector"></div>
+          <div class="wiz-step locked" data-step="6" title="Counting Line">
+            <div class="wiz-step-circle">
+              <span class="step-num-label">6</span>
+              <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="wiz-step-label">Line</div>
           </div>
         </div>
 
-        <!-- Shop ID -->
-        <div class="config-group">
-          <div class="config-label">Additional</div>
-          <div class="form-group">
-            <label>Shop ID (Optional)</label>
-            <input type="text" id="shop-id" placeholder="Override MENU_SHOP_ID if needed" />
+        <!-- Summary Bar -->
+        <div class="wiz-summary" id="wiz-summary"></div>
+
+        <!-- ── Step Panels ─────────────────────────────────────────── -->
+        <div class="wiz-panels">
+
+          <!-- Step 1: Camera -->
+          <div class="wiz-panel" id="wiz-panel-1">
+            <div class="step-heading">
+              <span class="step-heading-num">01</span>
+              <div>
+                <div class="step-heading-title">Select Camera</div>
+                <div class="step-heading-desc">Choose the RTSP camera for this detection job.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="camera-select">Camera</label>
+              <select id="camera-select">
+                <option value="" disabled selected>Loading cameras…</option>
+              </select>
+            </div>
+            <div class="wiz-nav">
+              <div></div>
+              <button class="btn btn-primary wiz-next-btn" id="step1-next">
+                Continue <span class="nav-arrow">→</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <button onclick="startJob()" class="btn btn-primary" style="width:100%; margin-top:20px;">Start Detection Job</button>
-      </div>
+          <!-- Step 2: Model -->
+          <div class="wiz-panel" id="wiz-panel-2" hidden>
+            <div class="step-heading">
+              <span class="step-heading-num">02</span>
+              <div>
+                <div class="step-heading-title">Detection Model</div>
+                <div class="step-heading-desc">Select the YOLO model to run on this camera stream.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="model-select">Model</label>
+              <select id="model-select">
+                <option value="" disabled selected>Loading models…</option>
+              </select>
+            </div>
+            <div class="wiz-nav">
+              <button class="btn btn-ghost wiz-back-btn">← Back</button>
+              <button class="btn btn-primary wiz-next-btn" id="step2-next">
+                Continue <span class="nav-arrow">→</span>
+              </button>
+            </div>
+          </div>
 
+          <!-- Step 3: Tracker + Thresholds -->
+          <div class="wiz-panel" id="wiz-panel-3" hidden>
+            <div class="step-heading">
+              <span class="step-heading-num">03</span>
+              <div>
+                <div class="step-heading-title">Tracker &amp; Thresholds</div>
+                <div class="step-heading-desc">Configure the object tracker and detection thresholds.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="tracker-select">Tracker Configuration</label>
+              <select id="tracker-select">
+                <option value="bytetrack.yaml">ByteTrack (Default)</option>
+                <option value="botsort.yaml">BoTSORT (Default)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-col">
+                <label for="conf">Confidence</label>
+                <input type="number" id="conf" value="0.25" step="0.01" min="0" max="1">
+              </div>
+              <div class="form-col">
+                <label for="iou">IOU Threshold</label>
+                <input type="number" id="iou" value="0.7" step="0.01" min="0" max="1">
+              </div>
+            </div>
+            <div class="wiz-nav">
+              <button class="btn btn-ghost wiz-back-btn">← Back</button>
+              <button class="btn btn-primary wiz-next-btn">
+                Continue <span class="nav-arrow">→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Resolution & Stream Settings -->
+          <div class="wiz-panel" id="wiz-panel-4" hidden>
+            <div class="step-heading">
+              <span class="step-heading-num">04</span>
+              <div>
+                <div class="step-heading-title">Stream Settings</div>
+                <div class="step-heading-desc">
+                  Set RTSP resolution and parameters. These values define the coordinate space for crop and line.
+                </div>
+              </div>
+            </div>
+
+            <div class="config-group">
+              <div class="config-label">Resolution</div>
+              <div class="form-row">
+                <div class="form-col">
+                  <label for="rtsp_width">Width</label>
+                  <input type="number" id="rtsp_width" placeholder="camera default">
+                </div>
+                <div class="form-col">
+                  <label for="rtsp_height">Height</label>
+                  <input type="number" id="rtsp_height" placeholder="camera default">
+                </div>
+              </div>
+            </div>
+
+            <div class="config-group">
+              <div class="config-label">Stream Parameters</div>
+              <div class="form-row">
+                <div class="form-col">
+                  <label for="rtsp_fps">FPS</label>
+                  <input type="number" id="rtsp_fps" value="15">
+                </div>
+                <div class="form-col">
+                  <label for="rtsp_buffer_size">Buffer Size</label>
+                  <input type="number" id="rtsp_buffer_size" value="1">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-col">
+                  <label for="rtsp_reconnect_delay">Reconnect Delay (s)</label>
+                  <input type="number" id="rtsp_reconnect_delay" value="3.0" step="0.5">
+                </div>
+                <div class="form-col">
+                  <label for="rtsp_read_timeout">Read Timeout (s)</label>
+                  <input type="number" id="rtsp_read_timeout" value="5.0" step="0.5">
+                </div>
+              </div>
+            </div>
+
+            <div class="config-group">
+              <div class="config-label">Additional</div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="shop-id">Shop ID <span class="label-hint">(optional)</span></label>
+                <input type="text" id="shop-id" placeholder="Override MENU_SHOP_ID if needed">
+              </div>
+            </div>
+
+            <div class="wiz-nav">
+              <button class="btn btn-ghost wiz-back-btn">← Back</button>
+              <button class="btn btn-primary wiz-next-btn">
+                Continue <span class="nav-arrow">→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 5: Crop Area -->
+          <div class="wiz-panel" id="wiz-panel-5" hidden>
+            <div class="step-heading">
+              <span class="step-heading-num">05</span>
+              <div class="step-heading-text">
+                <div class="step-heading-title">
+                  Processing Crop
+                  <span class="step-optional-badge">Optional</span>
+                </div>
+                <div class="step-heading-desc">
+                  Define the region the detector processes at runtime. Line coordinates are always measured inside this crop.
+                </div>
+              </div>
+            </div>
+
+            <label class="checkbox-label" id="crop-area-label">
+              <input type="checkbox" id="crop-area-check">
+              <span>Enable processing crop</span>
+            </label>
+
+            <div id="crop-coords-display" class="coord-display" hidden>
+              <div class="coord-display-inner">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                <span class="coord-label">Crop area:</span>
+                <span id="crop-values" class="coord-value"></span>
+              </div>
+              <button class="btn-coord-edit" id="crop-edit-btn">Edit</button>
+            </div>
+
+            <div class="wiz-nav">
+              <button class="btn btn-ghost wiz-back-btn">← Back</button>
+              <button class="btn btn-primary wiz-next-btn">
+                Continue <span class="nav-arrow">→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 6: Counting Line + Review -->
+          <div class="wiz-panel" id="wiz-panel-6" hidden>
+            <div class="step-heading">
+              <span class="step-heading-num">06</span>
+              <div class="step-heading-text">
+                <div class="step-heading-title">
+                  Counting Line
+                  <span class="step-optional-badge">Optional</span>
+                </div>
+                <div class="step-heading-desc" id="line-step-desc">
+                  Draw a line on the camera view. Objects crossing it will be counted.
+                </div>
+              </div>
+            </div>
+
+            <label class="checkbox-label" id="line-counting-label">
+              <input type="checkbox" id="line-counting-check">
+              <span>Enable counting line</span>
+            </label>
+
+            <div id="line-coords-display" class="coord-display" hidden>
+              <div class="coord-display-inner">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                <span class="coord-label">Line coords:</span>
+                <span id="coords-values" class="coord-value"></span>
+              </div>
+              <button class="btn-coord-edit" id="line-edit-btn">Edit</button>
+            </div>
+
+            <!-- Job Review Summary -->
+            <div class="review-summary" id="review-summary">
+              <div class="review-summary-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Job Summary
+              </div>
+              <div class="review-grid" id="review-grid">
+                <!-- populated by JS -->
+              </div>
+            </div>
+
+            <div class="wiz-nav wiz-nav-final">
+              <button class="btn btn-ghost wiz-back-btn">← Back</button>
+              <div class="wiz-final-actions">
+                <button class="btn btn-outline" id="save-preset-btn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Save as Preset
+                </button>
+                <button class="btn btn-primary btn-start-job" id="start-job-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Start Job
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /wiz-panels -->
+      </div><!-- /job-form-card -->
+
+      <!-- Running Jobs -->
       <div class="card jobs-list-card">
         <h3>Running Jobs</h3>
         <div id="jobs-list" class="jobs-list">
-          <!-- Jobs will be populated here -->
+          <div class="empty-state">Loading…</div>
         </div>
       </div>
-    </div>
 
+    </div><!-- /content-grid -->
+
+    <!-- Live View -->
     <div class="live-view-section" id="live-view-section" style="display:none;">
       <h3>Job Live View</h3>
       <div class="viewer-container">
@@ -162,11 +390,17 @@
       </div>
     </div>
 
+    <!-- Line Drawing Modal -->
     <div id="line-modal" class="modal" style="display:none;">
       <div class="modal-content">
-        <h3>Draw Counting Line</h3>
-        <p>Click and drag to draw a line. Objects crossing this line will be counted.</p>
-        <div class="canvas-container" style="position: relative; margin: 20px 0;">
+        <div class="modal-header">
+          <div>
+            <h3>Draw Counting Line</h3>
+            <p id="line-modal-desc">Click and drag on the image to draw a line. Objects crossing it will be counted.</p>
+          </div>
+          <div id="line-modal-badge" class="coord-space-badge" hidden></div>
+        </div>
+        <div class="canvas-container" style="position: relative; margin: 16px 0;">
           <canvas id="line-canvas"></canvas>
         </div>
         <div class="modal-actions">
@@ -175,12 +409,68 @@
         </div>
       </div>
     </div>
+
+    <!-- SharedCropEditor -->
+    <link rel="stylesheet" href="/static/training/shared/training-common.css">
+    <link rel="stylesheet" href="/static/training/upload/upload.css">
+
+    <div id="crop-editor" class="crop-editor" hidden>
+      <div class="crop-editor-toolbar">
+        <div>
+          <div class="crop-editor-title">Define Processing Crop Area</div>
+          <div id="crop-editor-scope" class="crop-editor-subtitle"></div>
+        </div>
+        <button id="crop-editor-close" class="crop-editor-close" type="button" aria-label="Close crop editor">Close</button>
+      </div>
+      <div class="crop-editor-main">
+        <div id="crop-stage" class="crop-stage">
+          <img id="crop-editor-img" alt="" />
+          <div id="crop-frame" class="crop-frame">
+            <div id="crop-box" class="crop-box">
+              <button class="crop-handle crop-handle-left" type="button" data-crop-handle="left" aria-label="Move left crop edge"></button>
+              <button class="crop-handle crop-handle-right" type="button" data-crop-handle="right" aria-label="Move right crop edge"></button>
+              <button class="crop-handle crop-handle-top" type="button" data-crop-handle="top" aria-label="Move top crop edge"></button>
+              <button class="crop-handle crop-handle-bottom" type="button" data-crop-handle="bottom" aria-label="Move bottom crop edge"></button>
+            </div>
+          </div>
+        </div>
+        <aside class="crop-editor-panel">
+          <div class="dimension-grid crop-editor-dimensions">
+            <div>
+              <span>Original</span>
+              <strong id="crop-original-size">-</strong>
+            </div>
+            <div>
+              <span>Cropped size</span>
+              <strong id="crop-output-size">-</strong>
+            </div>
+            <div>
+              <span>Creates</span>
+              <strong id="crop-created-count">-</strong>
+            </div>
+          </div>
+          <div class="crop-editor-dataset-opts" style="display:none;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="crop-create-dataset" checked> Create new dataset
+            </label>
+            <input type="text" id="crop-new-dataset-name" placeholder="Dataset name (optional)">
+          </div>
+          <button id="apply-crop-btn" class="btn btn-primary" type="button" style="display:none;">Create Crops</button>
+          <button id="crop-confirm-for-jobs" class="btn btn-primary" type="button">Confirm Area</button>
+          <div id="crop-editor-status" class="crop-editor-status"></div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Notification toast -->
+    <div id="job-notification" class="job-notification" hidden>
+      <span id="job-notification-msg"></span>
+    </div>
+
+    <script src="/static/shared/crop_editor.js"></script>
   </main>
 </div>
 
 <script src="/static/jobs/jobs.js"></script>
 </body>
 </html>
-
-
-

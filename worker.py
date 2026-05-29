@@ -55,6 +55,14 @@ class TrackingWorker(threading.Thread):
                     time.sleep(0.2)
                     continue
 
+                if self.config.crop_coords:
+                    x1, y1, x2, y2 = self.config.crop_coords
+                    h, w = im0.shape[:2]
+                    x1, y1 = max(0, x1), max(0, y1)
+                    x2, y2 = min(w, x2), min(h, y2)
+                    if x2 > x1 and y2 > y1:
+                        im0 = im0[y1:y2, x1:x2]
+
                 annotated_frame = self.processor.process_frame(im0)
                 self.stats = self.processor.stats
                 ok, jpeg = cv2.imencode('.jpg', annotated_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])

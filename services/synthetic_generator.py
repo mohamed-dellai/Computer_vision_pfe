@@ -107,11 +107,17 @@ class ProductRenderer:
         Returns an RGBA image (H, W, 4) with transparent background.
         Renders the 3D model at the given Euler angles (degrees).
         """
-        model_path = random.choice(self._product.model_paths)
+        valid_models = [
+            p for p in self._product.model_paths
+            if p.lower().endswith(('.obj', '.glb', '.gltf', '.stl', '.ply', '.dae'))
+        ]
+        if not valid_models:
+            raise RuntimeError(f"No valid 3D models found for product {self._product.class_name}")
+        model_path = random.choice(valid_models)
 
         with self._lock:
             try:
-                loaded = trimesh.load(model_path, force="mesh")
+                loaded = trimesh.load(model_path)
             except Exception as exc:
                 raise RuntimeError(f"Failed to load 3D model {model_path}: {exc}") from exc
 
@@ -141,29 +147,19 @@ class ProductRenderer:
                 self._lighting.ambient_intensity,
             ]
 
-            scene = pyrender.Scene(
-                bg_color=[0.0, 0.0, 0.0, 0.0],
-                ambient_light=ambient,
-            )
-
-            try:
+            if isinstance(loaded, trimesh.Scene):
+                scene = pyrender.Scene.from_trimesh_scene(
+                    loaded, 
+                    bg_color=[0.0, 0.0, 0.0, 0.0], 
+                    ambient_light=ambient
+                )
+            else:
+                scene = pyrender.Scene(
+                    bg_color=[0.0, 0.0, 0.0, 0.0],
+                    ambient_light=ambient,
+                )
                 mesh_node = pyrender.Mesh.from_trimesh(loaded)
-            except Exception:
-                # Fallback: process all sub-meshes
-                meshes = [loaded] if not hasattr(loaded, "geometry") else list(loaded.geometry.values())
-                primitives = []
-                for m in meshes:
-                    try:
-                        primitives.append(pyrender.Mesh.from_trimesh(m))
-                    except Exception:
-                        pass
-                if not primitives:
-                    raise RuntimeError("Could not create any renderable mesh from model")
-                mesh_node = primitives[0]
-                for extra in primitives[1:]:
-                    scene.add(extra)
-
-            scene.add(mesh_node)
+                scene.add(mesh_node)
 
             # Camera positioned along +Z axis looking at origin
             camera = pyrender.PerspectiveCamera(yfov=np.pi / 3.0, aspectRatio=1.0)
@@ -285,6 +281,9 @@ class ImageAugmentor:
 class SceneCompositor:
     """Composites an RGBA product render onto a BGR background."""
 
+    def __init__(self, config: SyntheticConfig):
+        self._config = config
+
     def composite(
         self,
         background: np.ndarray,
@@ -338,6 +337,25 @@ class SceneCompositor:
         result = background.copy()
         bg_region = result[sy1:sy2, sx1:sx2].astype(np.float32)
         fg_region = product_crop[:, :, :3].astype(np.float32)
+
+        # Color Harmonization
+        if self._config.augmentation.harmonize_color:
+            strength = self._config.augmentation.harmonize_strength
+            # Calculate mean color of the background region
+            bg_mean = cv2.mean(bg_region, mask=(alpha * 255).astype(np.uint8))[:3]
+            fg_mean = cv2.mean(fg_region, mask=(alpha * 255).astype(np.uint8))[:3]
+            
+            # Avoid division by zero
+            if sum(fg_mean) > 0 and sum(bg_mean) > 0:
+                # Calculate color shift ratios
+                shift_ratio = [bg_mean[i] / max(1.0, fg_mean[i]) for i in range(3)]
+                
+                # Apply shift to foreground with strength blending
+                for c in range(3):
+                    fg_region[:, :, c] = fg_region[:, :, c] * (1.0 - strength + shift_ratio[c] * strength)
+                
+                # Re-clip values to valid image range
+                fg_region = np.clip(fg_region, 0, 255)
 
         alpha_3 = alpha[:, :, np.newaxis]
         blended = fg_region * alpha_3 + bg_region * (1.0 - alpha_3)
@@ -487,6 +505,7 @@ class SyntheticDatasetGenerator:
         """
         cfg = self._config
         w_out, h_out = cfg.output_width, cfg.output_height
+        bg_h, bg_w = background.shape[:2]
         bg = cv2.resize(background, (w_out, h_out))
 
         annotations: List[Tuple[int, str, Tuple[float,float,float,float]]] = []
@@ -513,10 +532,17 @@ class SyntheticDatasetGenerator:
 
             # Random placement zone and position
             zone = random.choice(cfg.placement_zones)
-            cx, cy = self._sample_position(zone)
+            cx_orig, cy_orig = self._sample_position(zone)
+            
+            # Map coordinates to output size
+            cx = int(cx_orig * w_out / bg_w)
+            cy = int(cy_orig * h_out / bg_h)
 
-            # Fixed scale
-            scale = cfg.fixed_scale
+            # Scale the object appropriately relative to the background resize
+            bg_scale_x = w_out / bg_w
+            bg_scale_y = h_out / bg_h
+            bg_scale = (bg_scale_x + bg_scale_y) / 2.0
+            scale = cfg.fixed_scale * bg_scale
 
             # Composite and get bbox
             composited, bbox = compositor.composite(
@@ -566,7 +592,7 @@ class SyntheticDatasetGenerator:
         if background is None:
             raise RuntimeError(f"Cannot load background image: {cfg.background_path}")
 
-        compositor = SceneCompositor()
+        compositor = SceneCompositor(cfg)
         augmentor = ImageAugmentor(cfg.augmentation)
 
         # Sorted unique classes
@@ -693,7 +719,7 @@ class SyntheticDatasetGenerator:
         if background is None:
             raise RuntimeError(f"Cannot load background: {cfg.background_path}")
 
-        compositor = SceneCompositor()
+        compositor = SceneCompositor(cfg)
         augmentor = ImageAugmentor(cfg.augmentation)
         results = []
         try:
@@ -731,7 +757,7 @@ class SyntheticDatasetGenerator:
             else:
                 raise ValueError("No products configured for calibration.")
 
-        compositor = SceneCompositor()
+        compositor = SceneCompositor(cfg)
         renderer = self._get_renderer(product)
         
         try:
@@ -743,8 +769,7 @@ class SyntheticDatasetGenerator:
 
         scale = cfg.fixed_scale
         
-        w_out, h_out = cfg.output_width, cfg.output_height
-        bg_resized = cv2.resize(background, (w_out, h_out))
+        bg_resized = background.copy()
 
         composited, bbox = compositor.composite(
             bg_resized, rgba, x, y, scale, cfg.edge_feather_px

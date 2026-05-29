@@ -26,6 +26,49 @@
   gap: 10px;
 }
 
+.augmentation-panel {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.augmentation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.toggle-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toggle-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.augmentation-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.augmentation-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.augmentation-grid.disabled {
+  opacity: 0.55;
+}
+
 .status {
   margin-top: 12px;
   font-size: 14px;
@@ -54,5 +97,21 @@
 @media (max-width: 1200px) {
   .train-grid {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .augmentation-grid {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .augmentation-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .train-grid,
+  .augmentation-grid {
+    grid-template-columns: 1fr;
   }
 }

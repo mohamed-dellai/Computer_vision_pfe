@@ -30,7 +30,7 @@ async function fetchCameras() {
           </div>
         </div>
         <div class="camera-actions">
-          <button class="action-btn" onclick="startJobRedirect('${id}')">Start AI</button>
+          <button class="action-btn danger" onclick="deleteCamera('${id}')">Delete</button>
           <button class="action-btn secondary" onclick="viewRaw('${id}')">View Raw</button>
         </div>
       `;
@@ -81,8 +81,25 @@ function closeViewer() {
   viewer.style.display = 'none';
 }
 
-function startJobRedirect(cam_id) {
-  window.location.href = `/ui/jobs?camera_id=${cam_id}`;
+async function deleteCamera(cam_id) {
+  if (!confirm('Delete this camera?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/cameras/${cam_id}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      alert('Failed to delete camera');
+      return;
+    }
+
+    closeViewer();
+    fetchCameras();
+  } catch (e) {
+    console.error('Error deleting camera:', e);
+    alert('Failed to delete camera');
+  }
 }
-
-

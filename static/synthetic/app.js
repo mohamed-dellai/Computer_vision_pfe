@@ -19,6 +19,8 @@ const state = {
   activeJobId: null,
   pollTimer: null,
   dragScaleLine: null, // 'top'|'bottom'|null
+  lastCalibX: null,
+  lastCalibY: null,
 };
 
 const ZONE_COLORS = ['#58a6ff','#3fb950','#f78166','#d2a8ff','#ffa657','#79c0ff','#a5d6ff'];
@@ -104,19 +106,8 @@ function redraw(mousePos) {
     ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
   }
 
-  // Draw scale lines
-  ctx.setLineDash([6,4]);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = 'rgba(255,220,0,0.85)';
-  ctx.beginPath(); ctx.moveTo(0, state.scaleLine.yTop); ctx.lineTo(canvas.width, state.scaleLine.yTop); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,220,0,0.9)';
-  ctx.font = '12px Inter,sans-serif';
-  ctx.fillText(`▲ Top  scale=${document.getElementById('scale-top').value}`, 8, state.scaleLine.yTop - 5);
-  ctx.strokeStyle = 'rgba(255,150,0,0.85)';
-  ctx.beginPath(); ctx.moveTo(0, state.scaleLine.yBottom); ctx.lineTo(canvas.width, state.scaleLine.yBottom); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,150,0,0.9)';
-  ctx.fillText(`▼ Bottom  scale=${document.getElementById('scale-bot').value}`, 8, state.scaleLine.yBottom + 15);
-  ctx.setLineDash([]);
+  // Removed scale lines to prevent crash since HTML inputs are missing
+
 
   // Draw completed zones
   state.zones.forEach((zone, i) => {
@@ -225,36 +216,22 @@ canvas.addEventListener('click', e => {
     });
     renderZoneList(); redraw();
   } else if (state.currentTool === 'calibrate') {
+    state.lastCalibX = x;
+    state.lastCalibY = y;
     _runCalibration(x, y);
   }
 });
 
 canvas.addEventListener('mousedown', e => {
   const {x, y} = canvasXY(e);
-  const tol = 10;
-  if (Math.abs(y - state.scaleLine.yTop) < tol) { state.dragScaleLine = 'top'; return; }
-  if (Math.abs(y - state.scaleLine.yBottom) < tol) { state.dragScaleLine = 'bottom'; return; }
 });
 
 canvas.addEventListener('mousemove', e => {
   const {x, y} = canvasXY(e);
   _lastMousePos = {x, y};
 
-  if (state.dragScaleLine) {
-    if (state.dragScaleLine === 'top') {
-      state.scaleLine.yTop = Math.min(y, state.scaleLine.yBottom - 10);
-    } else {
-      state.scaleLine.yBottom = Math.max(y, state.scaleLine.yTop + 10);
-    }
-    redraw();
-    return;
-  }
-
   // Cursor hint
-  const tol = 10;
-  if (Math.abs(y - state.scaleLine.yTop) < tol || Math.abs(y - state.scaleLine.yBottom) < tol) {
-    canvas.style.cursor = 'ns-resize';
-  } else if (state.currentTool === 'draw') {
+  if (state.currentTool === 'draw') {
     // Snap cursor near first point
     const pts = state.drawingPoints;
     if (pts.length >= 3 && Math.hypot(x - pts[0].x, y - pts[0].y) < 12) {
@@ -281,6 +258,8 @@ canvas.addEventListener('contextmenu', e => {
 });
 
 // Enter key: finish zone
+let _calibTimer = null;
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && state.currentTool === 'draw' && state.drawingPoints.length >= 3) {
     _finishZone();
@@ -289,6 +268,51 @@ document.addEventListener('keydown', e => {
     state.drawingPoints = [];
     _updateFinishBtn();
     redraw();
+  }
+
+  // Calibration shortcuts
+  if (state.currentTool === 'calibrate' && state.lastCalibX !== null) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    let changed = false;
+    const rxEl = document.getElementById('calib-rx');
+    const ryEl = document.getElementById('calib-ry');
+    const rzEl = document.getElementById('calib-rz');
+    const scaleEl = document.getElementById('fixed-scale');
+
+    const stepRot = 5;
+    const stepScale = 0.05;
+    const key = e.key.toLowerCase();
+
+    if (key === 'a') {
+      rxEl.value = Math.max(-180, Math.min(180, parseFloat(rxEl.value) + (e.shiftKey ? -stepRot : stepRot)));
+      document.getElementById('val-calib-rx').textContent = rxEl.value + '°';
+      changed = true;
+    } else if (key === 'e') {
+      ryEl.value = Math.max(-180, Math.min(180, parseFloat(ryEl.value) + (e.shiftKey ? -stepRot : stepRot)));
+      document.getElementById('val-calib-ry').textContent = ryEl.value + '°';
+      changed = true;
+    } else if (key === 'z') {
+      rzEl.value = Math.max(-180, Math.min(180, parseFloat(rzEl.value) + (e.shiftKey ? -stepRot : stepRot)));
+      document.getElementById('val-calib-rz').textContent = rzEl.value + '°';
+      changed = true;
+    } else if (e.key === '+' || e.key === '=') {
+      scaleEl.value = Math.min(parseFloat(scaleEl.max), parseFloat(scaleEl.value) + stepScale).toFixed(2);
+      document.getElementById('val-fixed-scale').textContent = scaleEl.value;
+      changed = true;
+    } else if (e.key === '-' || e.key === '_') {
+      scaleEl.value = Math.max(parseFloat(scaleEl.min), parseFloat(scaleEl.value) - stepScale).toFixed(2);
+      document.getElementById('val-fixed-scale').textContent = scaleEl.value;
+      changed = true;
+    }
+
+    if (changed) {
+      e.preventDefault();
+      if (_calibTimer) clearTimeout(_calibTimer);
+      _calibTimer = setTimeout(() => {
+        _runCalibration(state.lastCalibX, state.lastCalibY);
+      }, 200); // 200ms debounce to prevent overwhelming the server while holding the key
+    }
   }
 });
 
@@ -503,28 +527,36 @@ function triggerModelUpload(zone) {
 async function uploadModels(card, files) {
   const idx = parseInt(card.dataset.idx);
   const modelList = card.querySelector('.model-list');
+  const fd = new FormData();
+  
   for (const file of files) {
     // Client-side extension check for instant feedback
     const ext = file.name.split('.').pop().toLowerCase();
-    const allowed = ['obj','glb','gltf','stl','ply','dae'];
+    const allowed = ['obj','glb','gltf','stl','ply','dae','mtl','png','jpg','jpeg'];
     if (!allowed.includes(ext)) {
-      alert(`❌ "${file.name}" is not a 3D model file.\n\nStep 1 (Background) is for images (JPG/PNG).\nStep 2 (Product Classes) is for 3D models: .obj .glb .stl .ply\n\nPlease upload a 3D model file here.`);
+      alert(`❌ "${file.name}" is not a supported 3D model or texture file.\n\nPlease upload 3D models (.obj, .glb, etc.) and their accompanying materials/textures (.mtl, .png, .jpg) together.`);
       continue;
     }
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const r = await fetch('/synthetic/upload/model', {method:'POST', body:fd});
-      const d = await r.json();
-      if (!r.ok) { alert('Upload error: ' + d.error); continue; }
-      state.products[idx].models.push({ filename: d.filename, path: d.path });
-      const item = document.createElement('div');
-      item.className = 'model-item';
-      item.innerHTML = `<span title="${file.name}">${file.name}</span>
-        <button class="btn-icon danger" onclick="removeModel(this,'${d.filename}',${idx})">✕</button>`;
-      modelList.appendChild(item);
-    } catch(e) { alert('Upload failed: ' + e); }
+    fd.append('files', file);
   }
+  
+  if (!fd.has('files')) return;
+
+  try {
+    const r = await fetch('/synthetic/upload/model', {method:'POST', body:fd});
+    const d = await r.json();
+    if (!r.ok) { alert('Upload error: ' + d.error); return; }
+    
+    // Server should return a list of saved models
+    for (const item of d.saved_files) {
+      state.products[idx].models.push({ filename: item.filename, path: item.path });
+      const el = document.createElement('div');
+      el.className = 'model-item';
+      el.innerHTML = `<span title="${item.original_name}">${item.original_name}</span>
+        <button class="btn-icon danger" onclick="removeModel(this,'${item.filename}',${idx})">✕</button>`;
+      modelList.appendChild(el);
+    }
+  } catch(e) { alert('Upload failed: ' + e); }
 }
 
 function removeModel(btn, filename, productIdx) {
@@ -587,6 +619,8 @@ function buildConfig() {
       noise_prob:             document.getElementById('aug-noise').checked  ? parseFloat(document.getElementById('aug-noise-prob').value)  : 0,
       hue_shift_prob:         document.getElementById('aug-hue').checked    ? parseFloat(document.getElementById('aug-hue-prob').value)    : 0,
       jpeg_artifact_prob:     document.getElementById('aug-jpeg').checked   ? parseFloat(document.getElementById('aug-jpeg-prob').value)   : 0,
+      harmonize_color:        document.getElementById('aug-harmonize').checked,
+      harmonize_strength:     parseFloat(document.getElementById('aug-harmonize-strength').value),
       motion_blur_kernel_range:[5,15],
       brightness_range:[0.7,1.3],
       noise_std_range:[5,25],

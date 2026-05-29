@@ -30,6 +30,29 @@ def create_cameras_blueprint(cameras, jobs, jobs_lock):
         persistence.save_state(cameras, jobs, jobs_lock)
         return jsonify({'camera_id': cid}), 201
 
+    @bp.route('/<camera_id>', methods=['DELETE'])
+    def delete_camera(camera_id):
+        if camera_id not in cameras:
+            return jsonify({'error': 'unknown camera'}), 404
+
+        deleted = cameras.pop(camera_id)
+        stopped_jobs = []
+        with jobs_lock:
+            for jid, job in list(jobs.items()):
+                if job.get('camera_id') == camera_id:
+                    worker = job.get('worker')
+                    if worker:
+                        worker.stop()
+                    del jobs[jid]
+                    stopped_jobs.append(jid)
+
+        persistence.save_state(cameras, jobs, jobs_lock)
+        return jsonify({
+            'deleted': camera_id,
+            'name': deleted.get('name'),
+            'stopped_jobs': stopped_jobs
+        })
+
     @bp.route('/<camera_id>/snapshot', methods=['GET'])
     def camera_snapshot(camera_id):
         cam = cameras.get(camera_id)

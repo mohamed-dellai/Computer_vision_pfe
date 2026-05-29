@@ -16,7 +16,14 @@ class VideoProcessor:
         }
         self.seen_ids = set()
         self.track_history = {} # track_id -> (cx, cy)
+        self.track_sides = {} # track_id -> last non-zero side of the counting line
         self.detected_events = []  # list of DetectedObject instances
+
+        # Line coordinates are expected in the same coordinate space as the
+        # frames passed to process_frame(). The worker crops the frame when
+        # `config.crop_coords` is set, so the frontend should supply
+        # coordinates relative to the cropped frame. No additional
+        # transformation is needed here.
 
         self._init_model()
 
@@ -34,6 +41,7 @@ class VideoProcessor:
         # (e.g. if we were using a different inference engine).
         self.model = None
         self.track_history.clear()
+        self.track_sides.clear()
         self.seen_ids.clear()
 
     def process_frame(self, frame):
@@ -54,21 +62,14 @@ class VideoProcessor:
             )
 
             annotated_frame = frame
-            
-            # Draw counting line if configured
-            if self.config.line_coords:
-                x1, y1, x2, y2 = self.config.line_coords
-                cv2.line(annotated_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                # Label ends A/B for reference
-                cv2.putText(annotated_frame, "A", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
-                cv2.putText(annotated_frame, "B", (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
             for result in results:
                
 
-                # Plot/annotate first, then pass annotated frame so events include overlays
+                # Plot/annotate only after tracking has consumed the clean frame.
                 annotated_frame = result.plot()
                 self._update_stats(result, annotated_frame)
+                self._draw_counting_line(annotated_frame)
                 self._draw_stats(annotated_frame)
                 break # Process only the first result (usually only one per frame)
             
@@ -131,10 +132,12 @@ class VideoProcessor:
                 cx, cy = int(xywhs[i][0]), int(xywhs[i][1])
                 w, h = int(xywhs[i][2]), int(xywhs[i][3])
                 curr_point = (cx, cy)
+                curr_side = self._point_side(curr_point, self.config.line_coords)
 
                 if tid in self.track_history:
                     prev_point = self.track_history[tid]
-                    direction = self._check_crossing(prev_point, curr_point, self.config.line_coords)
+                    prev_side = self.track_sides.get(tid)
+                    direction = self._check_crossing(prev_point, curr_point, self.config.line_coords, prev_side, curr_side)
 
                     if direction:
                         # Init if not exists (redundant but safe)
@@ -171,8 +174,57 @@ class VideoProcessor:
                             print(f"Warning: Failed creating DetectedObject: {e}")
 
                 self.track_history[tid] = curr_point
+                if curr_side != 0:
+                    self.track_sides[tid] = curr_side
 
-    def _check_crossing(self, p1, p2, line_coords):
+    def _point_side(self, point, line_coords):
+        """
+        Return the side of point relative to the directed line A->B:
+        1 = left side, -1 = right side, 0 = on the line.
+        """
+        x1, y1, x2, y2 = line_coords
+        px, py = point
+        cross = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1)
+        if cross > 0:
+            return 1
+        if cross < 0:
+            return -1
+        return 0
+
+    def _segments_intersect(self, p1, p2, q1, q2):
+        def orientation(a, b, c):
+            value = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+            if value > 0:
+                return 1
+            if value < 0:
+                return -1
+            return 0
+
+        def on_segment(a, b, c):
+            return (
+                min(a[0], c[0]) <= b[0] <= max(a[0], c[0])
+                and min(a[1], c[1]) <= b[1] <= max(a[1], c[1])
+            )
+
+        o1 = orientation(p1, p2, q1)
+        o2 = orientation(p1, p2, q2)
+        o3 = orientation(q1, q2, p1)
+        o4 = orientation(q1, q2, p2)
+
+        if o1 != o2 and o3 != o4:
+            return True
+        if o1 == 0 and on_segment(p1, q1, p2):
+            return True
+        if o2 == 0 and on_segment(p1, q2, p2):
+            return True
+        if o3 == 0 and on_segment(q1, p1, q2):
+            return True
+        if o4 == 0 and on_segment(q1, p2, q2):
+            return True
+
+        return False
+
+    def _check_crossing(self, p1, p2, line_coords, prev_side=None, curr_side=None):
         """
         Check if movement from p1 to p2 crosses the line.
         Returns 'in' or 'out' if crossed, None otherwise.
@@ -184,31 +236,31 @@ class VideoProcessor:
         """
         x1, y1, x2, y2 = line_coords
         l1, l2 = (x1, y1), (x2, y2)
-        
-        # Helper for orientation
-        def ccw(A, B, C):
-            return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
-            
-        intersect = ccw(p1, l1, l2) != ccw(p2, l1, l2) and ccw(p1, p2, l1) != ccw(p1, p2, l2)
-        
-        if intersect:
-            # We determine direction based on whether the object moved 
-            # generally "downwards" (In) or "upwards" (Out) relative to the screen.
-            # You can easily swap these if your camera is upside down!
-            y_movement = p2[1] - p1[1]
-            
-            # If the object moved downwards (positive Y on screen), it's "In"
-            if y_movement > 0:
+
+        if prev_side is None:
+            prev_side = self._point_side(p1, line_coords)
+        if curr_side is None:
+            curr_side = self._point_side(p2, line_coords)
+
+        if prev_side == 0 or curr_side == 0 or prev_side == curr_side:
+            return None
+
+        if self._segments_intersect(p1, p2, l1, l2):
+            if prev_side < 0 and curr_side > 0:
                 return 'in'
-            # If the object moved upwards (negative Y on screen), it's "Out"
-            elif y_movement < 0:
+            if prev_side > 0 and curr_side < 0:
                 return 'out'
-            else:
-                # If they moved perfectly horizontal, use X movement
-                x_movement = p2[0] - p1[0]
-                return 'in' if x_movement > 0 else 'out'
-            
+
         return None
+
+    def _draw_counting_line(self, frame):
+        if not self.config.line_coords:
+            return
+
+        x1, y1, x2, y2 = self.config.line_coords
+        cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+        cv2.putText(frame, "A", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+        cv2.putText(frame, "B", (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
     def _draw_stats(self, frame):
         y_offset = 30
