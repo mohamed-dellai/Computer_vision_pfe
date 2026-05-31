@@ -706,6 +706,18 @@
   flex-shrink: 0;
 }
 
+.zone-draw-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: rgba(37,99,235,.08);
+  color: var(--primary);
+  border: 1px solid rgba(37,99,235,.2);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
 .canvas-container {
   background: #f1f5f9;
   border-radius: 8px;

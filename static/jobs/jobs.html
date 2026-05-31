@@ -32,6 +32,9 @@
       <a href="/ui/training" class="nav-item">
         <span class="nav-icon">TR</span> <span class="nav-text">Training</span>
       </a>
+      <a href="/ui/integrations" class="nav-item">
+        <span class="nav-icon">IN</span> <span class="nav-text">Integration</span>
+      </a>
     </nav>
   </aside>
 
@@ -115,12 +118,12 @@
             <div class="wiz-step-label">Crop</div>
           </div>
           <div class="wiz-connector"></div>
-          <div class="wiz-step locked" data-step="6" title="Counting Line">
+          <div class="wiz-step locked" data-step="6" title="Counting">
             <div class="wiz-step-circle">
               <span class="step-num-label">6</span>
               <svg class="step-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <div class="wiz-step-label">Line</div>
+            <div class="wiz-step-label">Count</div>
           </div>
         </div>
 
@@ -260,14 +263,6 @@
               </div>
             </div>
 
-            <div class="config-group">
-              <div class="config-label">Additional</div>
-              <div class="form-group" style="margin-bottom:0;">
-                <label for="shop-id">Shop ID <span class="label-hint">(optional)</span></label>
-                <input type="text" id="shop-id" placeholder="Override MENU_SHOP_ID if needed">
-              </div>
-            </div>
-
             <div class="wiz-nav">
               <button class="btn btn-ghost wiz-back-btn">← Back</button>
               <button class="btn btn-primary wiz-next-btn">
@@ -313,33 +308,60 @@
             </div>
           </div>
 
-          <!-- Step 6: Counting Line + Review -->
+          <!-- Step 6: Counting + Review -->
           <div class="wiz-panel" id="wiz-panel-6" hidden>
             <div class="step-heading">
               <span class="step-heading-num">06</span>
               <div class="step-heading-text">
                 <div class="step-heading-title">
-                  Counting Line
+                  Counting Method
                   <span class="step-optional-badge">Optional</span>
                 </div>
                 <div class="step-heading-desc" id="line-step-desc">
-                  Draw a line on the camera view. Objects crossing it will be counted.
+                  Select how products should be counted on this camera view.
                 </div>
               </div>
             </div>
 
-            <label class="checkbox-label" id="line-counting-label">
-              <input type="checkbox" id="line-counting-check">
-              <span>Enable counting line</span>
-            </label>
+            <div class="form-group">
+              <label for="counting-method-select">Method</label>
+              <select id="counting-method-select">
+                <option value="none" selected>No counting method</option>
+                <option value="line">Line crossing</option>
+                <option value="zone">Zone dwell counting</option>
+              </select>
+            </div>
 
-            <div id="line-coords-display" class="coord-display" hidden>
-              <div class="coord-display-inner">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                <span class="coord-label">Line coords:</span>
-                <span id="coords-values" class="coord-value"></span>
+            <div id="line-method-panel">
+              <label class="checkbox-label" id="line-counting-label">
+                <input type="checkbox" id="line-counting-check">
+                <span>Enable counting line</span>
+              </label>
+
+              <div id="line-coords-display" class="coord-display" hidden>
+                <div class="coord-display-inner">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <span class="coord-label">Line coords:</span>
+                  <span id="coords-values" class="coord-value"></span>
+                </div>
+                <button class="btn-coord-edit" id="line-edit-btn">Edit</button>
               </div>
-              <button class="btn-coord-edit" id="line-edit-btn">Edit</button>
+            </div>
+
+            <div id="zone-method-panel" hidden>
+              <label class="checkbox-label" id="zone-counting-label">
+                <input type="checkbox" id="zone-counting-check">
+                <span>Enable IN/OUT zone dwell counting</span>
+              </label>
+
+              <div id="zone-coords-display" class="coord-display" hidden>
+                <div class="coord-display-inner">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+                  <span class="coord-label">Zones:</span>
+                  <span id="zone-values" class="coord-value"></span>
+                </div>
+                <button class="btn-coord-edit" id="zone-edit-btn">Edit</button>
+              </div>
             </div>
 
             <!-- Job Review Summary -->
@@ -406,6 +428,28 @@
         <div class="modal-actions">
           <button id="confirm-line" class="btn btn-primary">Confirm Line</button>
           <button id="cancel-line" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone Drawing Modal -->
+    <div id="zone-modal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h3>Draw IN and OUT Zones</h3>
+            <p id="zone-modal-desc">Draw the IN zone first. A product staying in IN for 3 seconds counts +1; OUT counts -1.</p>
+          </div>
+          <div id="zone-modal-badge" class="coord-space-badge" hidden></div>
+        </div>
+        <div class="zone-draw-status" id="zone-draw-status">Drawing IN zone</div>
+        <div class="canvas-container" style="position: relative; margin: 16px 0;">
+          <canvas id="zone-canvas"></canvas>
+        </div>
+        <div class="modal-actions">
+          <button id="reset-zones" class="btn btn-secondary">Reset Zones</button>
+          <button id="confirm-zones" class="btn btn-primary">Confirm Zones</button>
+          <button id="cancel-zones" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
     </div>

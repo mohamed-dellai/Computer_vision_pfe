@@ -19,6 +19,7 @@ from routes.trackers import create_trackers_blueprint
 from routes.training import create_training_blueprint
 from routes.ui import create_ui_blueprint
 from routes.synthetic import create_synthetic_blueprint
+from routes.integrations import create_integrations_blueprint
 from services.autodistill import GroundedSam2AutodistillService
 from services.training_runner import TrainingRunner
 from services.training_store import TrainingStore
@@ -82,7 +83,11 @@ for jid, j_config in loaded_jobs_config.items():
             iou=j_config.get('iou', 0.7),
             rtsp_config=rtsp_config,
             tracker_config=tracker_config,
-            line_coords=j_config.get('line_coords')
+            line_coords=j_config.get('line_coords'),
+            crop_coords=j_config.get('crop_coords'),
+            counting_method=j_config.get('counting_method') or ('zone' if j_config.get('zone_coords') else ('line' if j_config.get('line_coords') else 'none')),
+            zone_coords=j_config.get('zone_coords'),
+            zone_dwell_seconds=j_config.get('zone_dwell_seconds', 3.0)
         )
         
         worker = TrackingWorker(config)
@@ -100,6 +105,7 @@ app.register_blueprint(create_jobs_blueprint(cameras, jobs, jobs_lock, available
 app.register_blueprint(create_models_blueprint(MODELS_DIR, ALLOWED_EXTENSIONS, available_models))
 app.register_blueprint(create_trackers_blueprint(TRACKERS_DIR))
 app.register_blueprint(create_training_blueprint(training_store, training_runner, autodistill_service, cameras))
+app.register_blueprint(create_integrations_blueprint())
 app.register_blueprint(create_ui_blueprint(STATIC_DIR))
 app.register_blueprint(create_synthetic_blueprint(SYNTHETIC_DIR, store=training_store))
 

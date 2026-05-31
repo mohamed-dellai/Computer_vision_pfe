@@ -51,6 +51,9 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
             'rtsp_height': data.get('rtsp_height') or None,
             'crop_coords': data.get('crop_coords') or None,
             'line_coords': data.get('line_coords') or None,
+            'counting_method': data.get('counting_method') or ('zone' if data.get('zone_coords') else ('line' if data.get('line_coords') else 'none')),
+            'zone_coords': data.get('zone_coords') or None,
+            'zone_dwell_seconds': data.get('zone_dwell_seconds') or 3.0,
             'created_at': datetime.utcnow().isoformat(),
         }
         with _presets_lock:
@@ -72,7 +75,15 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
     @bp.route('', methods=['GET'])
     def list_jobs():
         with jobs_lock:
-            summary = {jid: {'camera_id': j['camera_id'], 'model': j['model'], 'status': j['worker'].status} for jid, j in jobs.items()}
+            summary = {
+                jid: {
+                    'camera_id': j['camera_id'],
+                    'model': j['model'],
+                    'status': j['worker'].status,
+                    'counting_method': j.get('counting_method'),
+                }
+                for jid, j in jobs.items()
+            }
         return jsonify(summary)
 
     @bp.route('/start', methods=['POST'])
@@ -89,6 +100,15 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         try:
             rtsp_config = RTSPConfig.from_dict(data)
             tracker_config = TrackerConfig.from_dict(data)
+            counting_method = data.get('counting_method') or ('zone' if data.get('zone_coords') else ('line' if data.get('line_coords') else 'none'))
+            if counting_method not in ('line', 'zone', 'none'):
+                return jsonify({'error': 'counting_method must be line, zone, or none'}), 400
+            if counting_method == 'line' and not data.get('line_coords'):
+                return jsonify({'error': 'line_coords are required for line counting'}), 400
+            if counting_method == 'zone':
+                zone_coords = data.get('zone_coords') or {}
+                if not isinstance(zone_coords, dict) or not zone_coords.get('in') or not zone_coords.get('out'):
+                    return jsonify({'error': 'zone_coords.in and zone_coords.out are required for zone counting'}), 400
 
             config = JobConfig(
                 camera_id=camera_id,
@@ -99,7 +119,10 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
                 rtsp_config=rtsp_config,
                 tracker_config=tracker_config,
                 line_coords=data.get('line_coords'),
-                crop_coords=data.get('crop_coords')
+                crop_coords=data.get('crop_coords'),
+                counting_method=counting_method,
+                zone_coords=data.get('zone_coords'),
+                zone_dwell_seconds=float(data.get('zone_dwell_seconds', 3.0))
             )
         except Exception as e:
             return jsonify({'error': f'Invalid configuration: {str(e)}'}), 400
@@ -136,7 +159,12 @@ def create_jobs_blueprint(cameras, jobs, jobs_lock, available_models_func):
         j = jobs.get(job_id)
         if not j:
             return jsonify({'error': 'unknown job'}), 404
-        return jsonify({'camera_id': j['camera_id'], 'model': j['model'], 'status': j['worker'].status})
+        return jsonify({
+            'camera_id': j['camera_id'],
+            'model': j['model'],
+            'status': j['worker'].status,
+            'counting_method': j.get('counting_method'),
+        })
 
     @bp.route('/<job_id>/mjpeg', methods=['GET'])
     def mjpeg_stream(job_id):

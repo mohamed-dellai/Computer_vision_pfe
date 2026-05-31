@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Integration - YOLO AI Server</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/integrations/integrations.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="brand"><span>YOLO</span> AI Server</div>
+    <nav class="nav-links">
+      <a href="/ui/cameras" class="nav-item"><span class="nav-icon">CA</span><span class="nav-text">Cameras</span></a>
+      <a href="/ui/models" class="nav-item"><span class="nav-icon">MO</span><span class="nav-text">Models</span></a>
+      <a href="/ui/jobs" class="nav-item"><span class="nav-icon">JB</span><span class="nav-text">Jobs</span></a>
+      <a href="/ui/trackers" class="nav-item"><span class="nav-icon">TK</span><span class="nav-text">Trackers</span></a>
+      <a href="/ui/training" class="nav-item"><span class="nav-icon">TR</span><span class="nav-text">Training</span></a>
+      <a href="/ui/integrations" class="nav-item active"><span class="nav-icon">IN</span><span class="nav-text">Integration</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header>
+      <div class="page-title">
+        <h1>Integration</h1>
+        <p>Configure where detected object events are sent.</p>
+      </div>
+    </header>
+
+    <div class="integration-layout">
+      <section class="card integration-card">
+        <h3>API Destination</h3>
+        <form id="integration-form">
+          <label class="toggle-row">
+            <input type="checkbox" id="integration-enabled">
+            <span>Use this integration for detections</span>
+          </label>
+
+          <div class="form-group">
+            <label for="api-url">API Link</label>
+            <input type="url" id="api-url" placeholder="https://example.com/vision/detected-object">
+          </div>
+
+          <div class="form-group">
+            <label for="integration-id">ID</label>
+            <input type="text" id="integration-id" placeholder="Store, menu, tenant, or destination ID">
+          </div>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="include-image">
+            <span>Include Snapshot Image in Payload</span>
+          </label>
+
+          <div class="form-group">
+            <label for="filter-classes">Filter by Classes</label>
+            <input type="text" id="filter-classes" placeholder="e.g. person, car (leave empty for all)">
+          </div>
+
+          <div class="form-group">
+            <label>Trigger on Event Types</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="filter-events" value="in"> In</label>
+              <label><input type="checkbox" name="filter-events" value="out"> Out</label>
+              <label><input type="checkbox" name="filter-events" value="unknown"> None/Tracking</label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="test-integration-btn">Test Connection</button>
+            <span class="auto-save-msg" id="auto-save-msg">All changes saved automatically.</span>
+          </div>
+        </form>
+      </section>
+
+      <div class="right-col">
+        <section class="card status-card">
+          <h3>Status</h3>
+          <div id="integration-status" class="status-box">Loading integration...</div>
+          <div id="test-result" class="test-result" hidden></div>
+        </section>
+
+        <section class="card logs-card">
+          <h3>Recent Events <span class="live-indicator"></span></h3>
+          <div class="logs-container">
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Class</th>
+                  <th>Event</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="logs-tbody">
+                <tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">No recent events</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="integration-notification" class="integration-notification" hidden></div>
+<script src="/static/integrations/integrations.js"></script>
+</body>
+</html>

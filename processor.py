@@ -4,6 +4,7 @@ import numpy as np
 from ultralytics import YOLO
 from utils.detected_object import DetectedObject
 from datetime import datetime
+from zone_counter import ZoneCounter
 
 class VideoProcessor:
     def __init__(self, config):
@@ -13,11 +14,19 @@ class VideoProcessor:
             'total_unique': 0,
             'class_counts': {},  # class_name -> count
             'line_counts': {},   # class_name -> {'in': count, 'out': count}
+            'zone_counts': {},   # class_name -> {'in': count, 'out': count, 'net': count}
         }
         self.seen_ids = set()
         self.track_history = {} # track_id -> (cx, cy)
         self.track_sides = {} # track_id -> last non-zero side of the counting line
         self.detected_events = []  # list of DetectedObject instances
+        self.counting_method = getattr(config, 'counting_method', None)
+        if not self.counting_method:
+            self.counting_method = 'zone' if getattr(config, 'zone_coords', None) else ('line' if getattr(config, 'line_coords', None) else 'none')
+        self.zone_counter = None
+        if self.counting_method == 'zone' and getattr(config, 'zone_coords', None):
+            dwell_seconds = getattr(config, 'zone_dwell_seconds', 3.0)
+            self.zone_counter = ZoneCounter(config.zone_coords, dwell_seconds=dwell_seconds)
 
         # Line coordinates are expected in the same coordinate space as the
         # frames passed to process_frame(). The worker crops the frame when
@@ -70,6 +79,7 @@ class VideoProcessor:
                 annotated_frame = result.plot()
                 self._update_stats(result, annotated_frame)
                 self._draw_counting_line(annotated_frame)
+                self._draw_zones(annotated_frame)
                 self._draw_stats(annotated_frame)
                 break # Process only the first result (usually only one per frame)
             
@@ -114,21 +124,23 @@ class VideoProcessor:
 
                     conf = confs[i] if i < len(confs) else 0.0
 
+                    in_or_out = "in" if self.counting_method == 'none' else "unknown"
                     dobj = DetectedObject(
                         class_name=cname,
                         object_id=tid,
                         detection_time=datetime.now(),
                         location=location,
                         image=frame.copy(),
-                        inOrOut="unknown",
+                        inOrOut=in_or_out,
                         confidence=float(conf)
                     )
-                    dobj.post_event()
+                    if self.counting_method == 'none':
+                        dobj.post_event()
                 except Exception as e:
                     print(f"Warning: Failed sending DetectedObject: {e}")
 
             # Line crossing counting
-            if self.config.line_coords and i < len(xywhs):
+            if self.counting_method == 'line' and self.config.line_coords and i < len(xywhs):
                 cx, cy = int(xywhs[i][0]), int(xywhs[i][1])
                 w, h = int(xywhs[i][2]), int(xywhs[i][3])
                 curr_point = (cx, cy)
@@ -170,12 +182,41 @@ class VideoProcessor:
                             )
 
                             self.detected_events.append(dobj)
+                            dobj.post_event()
                         except Exception as e:
                             print(f"Warning: Failed creating DetectedObject: {e}")
 
                 self.track_history[tid] = curr_point
                 if curr_side != 0:
                     self.track_sides[tid] = curr_side
+
+            # Zone dwell counting
+            if self.counting_method == 'zone' and self.zone_counter and i < len(xywhs):
+                cx, cy = int(xywhs[i][0]), int(xywhs[i][1])
+                w, h = int(xywhs[i][2]), int(xywhs[i][3])
+                direction = self.zone_counter.update(tid, cname, (cx, cy))
+                self.stats['zone_counts'] = self.zone_counter.get_counts()
+
+                if direction:
+                    print(f"Info: Object counted in {direction} zone: ID {tid} ({cname})")
+                    try:
+                        x = max(0, int(cx - w / 2))
+                        y = max(0, int(cy - h / 2))
+                        conf = confs[i] if i < len(confs) else 0.0
+
+                        dobj = DetectedObject(
+                            class_name=cname,
+                            object_id=tid,
+                            detection_time=datetime.now(),
+                            location=[x, y, int(w), int(h)],
+                            image=frame.copy(),
+                            inOrOut=direction,
+                            confidence=float(conf)
+                        )
+                        self.detected_events.append(dobj)
+                        dobj.post_event()
+                    except Exception as e:
+                        print(f"Warning: Failed creating zone DetectedObject: {e}")
 
     def _point_side(self, point, line_coords):
         """
@@ -254,13 +295,32 @@ class VideoProcessor:
         return None
 
     def _draw_counting_line(self, frame):
-        if not self.config.line_coords:
+        if self.counting_method != 'line' or not self.config.line_coords:
             return
 
         x1, y1, x2, y2 = self.config.line_coords
         cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
         cv2.putText(frame, "A", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
         cv2.putText(frame, "B", (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+
+    def _draw_zones(self, frame):
+        if self.counting_method != 'zone' or not self.zone_counter:
+            return
+
+        colors = {
+            'in': (0, 180, 0),
+            'out': (0, 0, 220),
+        }
+        labels = {
+            'in': 'IN +1',
+            'out': 'OUT -1',
+        }
+        for zone_name, zone in self.zone_counter.zones.items():
+            x1, y1, x2, y2 = zone
+            color = colors.get(zone_name, (255, 255, 0))
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+            cv2.putText(frame, labels.get(zone_name, zone_name.upper()), (x1, max(16, y1 - 6)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
 
     def _draw_stats(self, frame):
         y_offset = 30
@@ -274,7 +334,7 @@ class VideoProcessor:
             y_offset += 35
 
         # Draw line counts if enabled
-        if self.config.line_coords:
+        if self.counting_method == 'line' and self.config.line_coords:
              y_offset += 10
              title = "Line Crossings:"
              (w, h), _ = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
@@ -287,6 +347,22 @@ class VideoProcessor:
                 out_count = counts['out']
                 text = f"{cname}: In {in_count} | Out {out_count}"
                 
+                (w, h), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+                cv2.rectangle(frame, (10, y_offset - h - 5), (10 + w, y_offset + 5), (0, 0, 0), -1)
+                cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+                y_offset += 35
+
+        if self.counting_method == 'zone' and self.zone_counter:
+             y_offset += 10
+             title = "Zone Counts:"
+             (w, h), _ = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+             cv2.rectangle(frame, (10, y_offset - h - 5), (10 + w, y_offset + 5), (0, 0, 0), -1)
+             cv2.putText(frame, title, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+             y_offset += 35
+
+             for cname, counts in self.stats['zone_counts'].items():
+                text = f"{cname}: +{counts['in']} | -{counts['out']} | Net {counts['net']}"
+
                 (w, h), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
                 cv2.rectangle(frame, (10, y_offset - h - 5), (10 + w, y_offset + 5), (0, 0, 0), -1)
                 cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)

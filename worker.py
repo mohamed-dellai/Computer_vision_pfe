@@ -19,6 +19,7 @@ class TrackingWorker(threading.Thread):
             'total_unique': 0,
             'class_counts': {},
             'line_counts': {},
+            'zone_counts': {},
         }
         self.processor = None
 

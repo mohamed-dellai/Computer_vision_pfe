@@ -55,6 +55,9 @@ class JobConfig:
     tracker_config: TrackerConfig
     line_coords: Optional[List[int]] = None
     crop_coords: Optional[List[int]] = None
+    counting_method: str = 'none'
+    zone_coords: Optional[Dict[str, List[int]]] = None
+    zone_dwell_seconds: float = 3.0
 
     def to_dict(self) -> Dict[str, Any]:
         """Returns a flat dictionary representation of the config."""
@@ -65,6 +68,9 @@ class JobConfig:
             'iou': self.iou,
             'line_coords': self.line_coords,
             'crop_coords': self.crop_coords,
+            'counting_method': self.counting_method,
+            'zone_coords': self.zone_coords,
+            'zone_dwell_seconds': self.zone_dwell_seconds,
             # Flatten RTSP config
             'rtsp_width': self.rtsp_config.width,
             'rtsp_height': self.rtsp_config.height,

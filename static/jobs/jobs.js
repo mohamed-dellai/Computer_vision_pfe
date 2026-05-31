@@ -16,9 +16,11 @@ const jobConfig = {
   rtsp_buffer_size: 1,
   rtsp_reconnect_delay: 3.0,
   rtsp_read_timeout: 5.0,
-  shop_id: null,
   crop_coords: null,   // [x1,y1,x2,y2] in RTSP frame
   line_coords: null,   // [x1,y1,x2,y2] in cropped frame (or RTSP frame if no crop)
+  counting_method: 'none',
+  zone_coords: null,   // {in:[x1,y1,x2,y2], out:[x1,y1,x2,y2]} in cropped/full frame
+  zone_dwell_seconds: 3.0,
 };
 
 // Line drawing state
@@ -26,6 +28,13 @@ let snapshotImage = null;
 let isDrawing = false;
 let startPoint = null;
 let currentPoint = null;
+
+// Zone drawing state
+let zoneDraftRects = {};
+let zoneDrawTarget = 'in';
+let zoneStartPoint = null;
+let zoneCurrentPoint = null;
+let isDrawingZone = false;
 
 // Camera name lookup
 let camerasCache = {};
@@ -42,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchPresets();
   setInterval(fetchJobs, 3000);
   setupLineModal();
+  setupZoneModal();
 
   const savedTracker = sessionStorage.getItem('selectedTracker');
   if (savedTracker) {
@@ -82,9 +92,12 @@ function initWizard() {
   document.getElementById('crop-area-check').addEventListener('change', onCropCheckChange);
   document.getElementById('crop-edit-btn').addEventListener('click', openCropEditor);
 
-  // Line controls
+  // Counting controls
+  document.getElementById('counting-method-select').addEventListener('change', onCountingMethodChange);
   document.getElementById('line-counting-check').addEventListener('change', onLineCheckChange);
   document.getElementById('line-edit-btn').addEventListener('click', () => openLineModal());
+  document.getElementById('zone-counting-check').addEventListener('change', onZoneCheckChange);
+  document.getElementById('zone-edit-btn').addEventListener('click', () => openZoneModal());
 
   // Save preset
   document.getElementById('save-preset-btn').addEventListener('click', promptSavePreset);
@@ -117,7 +130,11 @@ function goToStep(n) {
   updateStepIndicator();
   updateSummaryBar();
 
-  if (n === 6) buildReviewSummary();
+  if (n === 6) {
+    updateCountingControls();
+    buildReviewSummary();
+    updateLineStepDesc();
+  }
   if (n === 5) updateLineStepDesc();
 }
 
@@ -165,7 +182,13 @@ function collectStep(n) {
     jobConfig.rtsp_buffer_size = parseInt(document.getElementById('rtsp_buffer_size').value) || 1;
     jobConfig.rtsp_reconnect_delay = parseFloat(document.getElementById('rtsp_reconnect_delay').value) || 3.0;
     jobConfig.rtsp_read_timeout = parseFloat(document.getElementById('rtsp_read_timeout').value) || 5.0;
-    jobConfig.shop_id = document.getElementById('shop-id').value.trim() || null;
+  }
+  if (n === 6) {
+    jobConfig.counting_method = document.getElementById('counting-method-select').value;
+    if (jobConfig.counting_method === 'none') {
+      jobConfig.line_coords = null;
+      jobConfig.zone_coords = null;
+    }
   }
 }
 
@@ -197,6 +220,10 @@ function updateSummaryBar() {
     pills.push(jobConfig.crop_coords
       ? { icon: 'CR', text: 'Crop set', highlight: true }
       : { icon: 'CR', text: 'No crop' });
+    const methodText = jobConfig.counting_method === 'zone' ? 'Zone count'
+      : jobConfig.counting_method === 'line' ? 'Line count'
+      : 'No counting';
+    pills.push({ icon: 'CT', text: methodText, highlight: jobConfig.counting_method !== 'none' });
   }
 
   bar.innerHTML = pills.map(p => `
@@ -212,6 +239,11 @@ function updateSummaryBar() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  Review Summary (step 6)
 // ─────────────────────────────────────────────────────────────────────────────
+function formatCoords(coords) {
+  if (!coords) return 'None';
+  return `(${coords[0]}, ${coords[1]}) -> (${coords[2]}, ${coords[3]})`;
+}
+
 function buildReviewSummary() {
   const cam = camerasCache[jobConfig.camera_id];
   const camLabel = cam ? `${cam.name}` : (jobConfig.camera_id || '—');
@@ -226,6 +258,12 @@ function buildReviewSummary() {
   const lineText = jobConfig.line_coords
     ? `(${jobConfig.line_coords[0]}, ${jobConfig.line_coords[1]}) → (${jobConfig.line_coords[2]}, ${jobConfig.line_coords[3]})`
     : 'None';
+  const methodText = jobConfig.counting_method === 'zone' ? 'Zone dwell'
+    : jobConfig.counting_method === 'line' ? 'Line crossing'
+    : 'None';
+  const zoneText = jobConfig.zone_coords
+    ? `IN ${formatCoords(jobConfig.zone_coords.in)} | OUT ${formatCoords(jobConfig.zone_coords.out)}`
+    : 'None';
 
   const rows = [
     ['Camera', camLabel],
@@ -234,7 +272,9 @@ function buildReviewSummary() {
     ['Conf / IOU', `${jobConfig.conf} / ${jobConfig.iou}`],
     ['Resolution', res],
     ['Crop area', cropText],
+    ['Counting method', methodText],
     ['Counting line', lineText],
+    ['Zones', zoneText],
     ['FPS', `${jobConfig.rtsp_fps}`],
   ];
 
@@ -246,6 +286,16 @@ function buildReviewSummary() {
 
 function updateLineStepDesc() {
   const desc = document.getElementById('line-step-desc');
+  if (jobConfig.counting_method === 'zone') {
+    desc.textContent = jobConfig.crop_coords
+      ? 'Draw IN and OUT zones on the cropped area. A 3 second dwell counts +1 for IN and -1 for OUT.'
+      : 'Draw IN and OUT zones on the camera view. A 3 second dwell counts +1 for IN and -1 for OUT.';
+    return;
+  }
+  if (jobConfig.counting_method === 'none') {
+    desc.textContent = 'No counting overlay will be applied to this job.';
+    return;
+  }
   if (jobConfig.crop_coords) {
     desc.textContent = 'Draw a line on the cropped area. Coordinates will be measured inside the crop region.';
     const badge = document.getElementById('line-modal-badge');
@@ -276,9 +326,12 @@ async function onCropCheckChange(e) {
     jobConfig.crop_coords = null;
     // Also clear line coords since they were in cropped space
     jobConfig.line_coords = null;
+    jobConfig.zone_coords = null;
     document.getElementById('crop-coords-display').hidden = true;
     document.getElementById('line-coords-display').hidden = true;
+    document.getElementById('zone-coords-display').hidden = true;
     document.getElementById('line-counting-check').checked = false;
+    document.getElementById('zone-counting-check').checked = false;
   }
 }
 
@@ -306,8 +359,11 @@ async function openCropEditor() {
     jobConfig.crop_coords = coords;
     // Invalidate any previously drawn line since coordinate space changed
     jobConfig.line_coords = null;
+    jobConfig.zone_coords = null;
     document.getElementById('line-coords-display').hidden = true;
+    document.getElementById('zone-coords-display').hidden = true;
     document.getElementById('line-counting-check').checked = false;
+    document.getElementById('zone-counting-check').checked = false;
 
     document.getElementById('crop-values').textContent =
       `(${coords[0]}, ${coords[1]}) → (${coords[2]}, ${coords[3]})`;
@@ -321,8 +377,38 @@ async function openCropEditor() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  Line Step
 // ─────────────────────────────────────────────────────────────────────────────
+function onCountingMethodChange(e) {
+  jobConfig.counting_method = e.target.value;
+  if (jobConfig.counting_method !== 'line') {
+    jobConfig.line_coords = null;
+    document.getElementById('line-counting-check').checked = false;
+    document.getElementById('line-coords-display').hidden = true;
+  }
+  if (jobConfig.counting_method !== 'zone') {
+    jobConfig.zone_coords = null;
+    document.getElementById('zone-counting-check').checked = false;
+    document.getElementById('zone-coords-display').hidden = true;
+  }
+  updateCountingControls();
+  updateLineStepDesc();
+  buildReviewSummary();
+}
+
+function updateCountingControls() {
+  const method = jobConfig.counting_method || 'none';
+  document.getElementById('counting-method-select').value = method;
+  document.getElementById('line-method-panel').hidden = method !== 'line';
+  document.getElementById('zone-method-panel').hidden = method !== 'zone';
+  document.getElementById('line-counting-check').checked = !!jobConfig.line_coords && method === 'line';
+  document.getElementById('zone-counting-check').checked = !!jobConfig.zone_coords && method === 'zone';
+}
+
 async function onLineCheckChange(e) {
   if (e.target.checked) {
+    jobConfig.counting_method = 'line';
+    jobConfig.zone_coords = null;
+    document.getElementById('zone-coords-display').hidden = true;
+    document.getElementById('zone-counting-check').checked = false;
     const cameraId = jobConfig.camera_id || document.getElementById('camera-select').value;
     if (!cameraId) {
       showNotification('Camera not selected – go back to step 1.', 'error');
@@ -340,6 +426,35 @@ async function onLineCheckChange(e) {
     jobConfig.line_coords = null;
     document.getElementById('line-coords-display').hidden = true;
   }
+  updateCountingControls();
+  buildReviewSummary();
+}
+
+async function onZoneCheckChange(e) {
+  if (e.target.checked) {
+    jobConfig.counting_method = 'zone';
+    jobConfig.line_coords = null;
+    document.getElementById('line-coords-display').hidden = true;
+    document.getElementById('line-counting-check').checked = false;
+    const cameraId = jobConfig.camera_id || document.getElementById('camera-select').value;
+    if (!cameraId) {
+      showNotification('Camera not selected â€“ go back to step 1.', 'error');
+      e.target.checked = false;
+      return;
+    }
+    try {
+      await openZoneModal();
+    } catch (err) {
+      showNotification('Failed to get snapshot: ' + err.message, 'error');
+      e.target.checked = false;
+    }
+    if (!jobConfig.zone_coords) e.target.checked = false;
+  } else {
+    jobConfig.zone_coords = null;
+    document.getElementById('zone-coords-display').hidden = true;
+  }
+  updateCountingControls();
+  buildReviewSummary();
 }
 
 function setupLineModal() {
@@ -378,12 +493,17 @@ function setupLineModal() {
       Math.round(currentPoint.x * scaleX),
       Math.round(currentPoint.y * scaleY),
     ];
+    jobConfig.counting_method = 'line';
+    jobConfig.zone_coords = null;
 
     document.getElementById('coords-values').textContent =
       `(${jobConfig.line_coords[0]}, ${jobConfig.line_coords[1]}) → (${jobConfig.line_coords[2]}, ${jobConfig.line_coords[3]})`;
     document.getElementById('line-coords-display').hidden = false;
+    document.getElementById('zone-coords-display').hidden = true;
     document.getElementById('line-counting-check').checked = true;
     document.getElementById('line-modal').style.display = 'none';
+    updateCountingControls();
+    buildReviewSummary();
   });
 
   document.getElementById('cancel-line').addEventListener('click', () => {
@@ -490,6 +610,208 @@ function redrawLineCanvas() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  Presets
 // ─────────────────────────────────────────────────────────────────────────────
+function setupZoneModal() {
+  const canvas = document.getElementById('zone-canvas');
+
+  canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    zoneStartPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    zoneCurrentPoint = { ...zoneStartPoint };
+    isDrawingZone = true;
+    redrawZoneCanvas();
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDrawingZone) return;
+    const rect = canvas.getBoundingClientRect();
+    zoneCurrentPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    redrawZoneCanvas();
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    if (!zoneStartPoint || !zoneCurrentPoint) return;
+    isDrawingZone = false;
+    const rect = normalizeRect(zoneStartPoint, zoneCurrentPoint);
+    if (rect[2] - rect[0] < 8 || rect[3] - rect[1] < 8) {
+      showNotification('Draw a larger zone.', 'error');
+      return;
+    }
+    zoneDraftRects[zoneDrawTarget] = rect;
+    if (zoneDrawTarget === 'in') zoneDrawTarget = 'out';
+    updateZoneDrawStatus();
+    redrawZoneCanvas();
+  });
+
+  document.getElementById('reset-zones').addEventListener('click', () => {
+    zoneDraftRects = {};
+    zoneDrawTarget = 'in';
+    zoneStartPoint = null;
+    zoneCurrentPoint = null;
+    isDrawingZone = false;
+    updateZoneDrawStatus();
+    redrawZoneCanvas();
+  });
+
+  document.getElementById('confirm-zones').addEventListener('click', () => {
+    if (!zoneDraftRects.in || !zoneDraftRects.out) {
+      showNotification('Draw both IN and OUT zones first.', 'error');
+      return;
+    }
+    const scaleX = snapshotImage.width / canvas.width;
+    const scaleY = snapshotImage.height / canvas.height;
+    jobConfig.zone_coords = {
+      in: scaleRect(zoneDraftRects.in, scaleX, scaleY),
+      out: scaleRect(zoneDraftRects.out, scaleX, scaleY),
+    };
+    jobConfig.counting_method = 'zone';
+    jobConfig.line_coords = null;
+
+    document.getElementById('zone-values').textContent =
+      `IN ${formatCoords(jobConfig.zone_coords.in)} | OUT ${formatCoords(jobConfig.zone_coords.out)}`;
+    document.getElementById('zone-coords-display').hidden = false;
+    document.getElementById('line-coords-display').hidden = true;
+    document.getElementById('zone-counting-check').checked = true;
+    document.getElementById('zone-modal').style.display = 'none';
+    updateCountingControls();
+    buildReviewSummary();
+  });
+
+  document.getElementById('cancel-zones').addEventListener('click', () => {
+    document.getElementById('zone-modal').style.display = 'none';
+    if (!jobConfig.zone_coords) {
+      document.getElementById('zone-counting-check').checked = false;
+    }
+  });
+}
+
+async function openZoneModal() {
+  const modal = document.getElementById('zone-modal');
+  const canvas = document.getElementById('zone-canvas');
+
+  zoneDraftRects = {};
+  zoneDrawTarget = 'in';
+  zoneStartPoint = null;
+  zoneCurrentPoint = null;
+  isDrawingZone = false;
+
+  const cameraId = jobConfig.camera_id || document.getElementById('camera-select').value;
+  collectStep(4);
+
+  let url = `/cameras/${cameraId}/snapshot`;
+  const params = new URLSearchParams();
+  if (jobConfig.rtsp_width) params.append('width', jobConfig.rtsp_width);
+  if (jobConfig.rtsp_height) params.append('height', jobConfig.rtsp_height);
+  if (params.toString()) url += `?${params.toString()}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Could not fetch snapshot');
+  const blob = await res.blob();
+
+  const fullImg = new Image();
+  fullImg.src = URL.createObjectURL(blob);
+  await new Promise(r => { fullImg.onload = r; });
+
+  if (jobConfig.crop_coords) {
+    const [cx1, cy1, cx2, cy2] = jobConfig.crop_coords;
+    const cropW = cx2 - cx1;
+    const cropH = cy2 - cy1;
+
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = cropW;
+    tmpCanvas.height = cropH;
+    tmpCanvas.getContext('2d').drawImage(fullImg, cx1, cy1, cropW, cropH, 0, 0, cropW, cropH);
+
+    const croppedImg = new Image();
+    croppedImg.src = tmpCanvas.toDataURL('image/jpeg', 0.92);
+    await new Promise(r => { croppedImg.onload = r; });
+    snapshotImage = croppedImg;
+    URL.revokeObjectURL(fullImg.src);
+
+    const badge = document.getElementById('zone-modal-badge');
+    badge.textContent = `Drawing on cropped area (${cropW}Ã—${cropH})`;
+    badge.hidden = false;
+  } else {
+    snapshotImage = fullImg;
+    document.getElementById('zone-modal-badge').hidden = true;
+  }
+
+  const maxW = 700;
+  const maxH = 500;
+  let w = snapshotImage.width;
+  let h = snapshotImage.height;
+  if (w > maxW) { h = h * (maxW / w); w = maxW; }
+  if (h > maxH) { w = w * (maxH / h); h = maxH; }
+  canvas.width = Math.round(w);
+  canvas.height = Math.round(h);
+
+  updateZoneDrawStatus();
+  modal.style.display = 'flex';
+  redrawZoneCanvas();
+}
+
+function normalizeRect(a, b) {
+  return [
+    Math.min(a.x, b.x),
+    Math.min(a.y, b.y),
+    Math.max(a.x, b.x),
+    Math.max(a.y, b.y),
+  ];
+}
+
+function scaleRect(rect, scaleX, scaleY) {
+  return [
+    Math.round(rect[0] * scaleX),
+    Math.round(rect[1] * scaleY),
+    Math.round(rect[2] * scaleX),
+    Math.round(rect[3] * scaleY),
+  ];
+}
+
+function updateZoneDrawStatus() {
+  const el = document.getElementById('zone-draw-status');
+  if (zoneDraftRects.in && zoneDraftRects.out) {
+    el.textContent = 'IN and OUT zones ready';
+  } else if (zoneDraftRects.in) {
+    el.textContent = 'Drawing OUT zone';
+  } else {
+    el.textContent = 'Drawing IN zone';
+  }
+}
+
+function redrawZoneCanvas() {
+  const canvas = document.getElementById('zone-canvas');
+  if (!snapshotImage) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(snapshotImage, 0, 0, canvas.width, canvas.height);
+
+  drawZoneRect(ctx, zoneDraftRects.in, 'IN +1', '#16a34a');
+  drawZoneRect(ctx, zoneDraftRects.out, 'OUT -1', '#dc2626');
+
+  if (isDrawingZone && zoneStartPoint && zoneCurrentPoint) {
+    const rect = normalizeRect(zoneStartPoint, zoneCurrentPoint);
+    const label = zoneDrawTarget === 'in' ? 'IN +1' : 'OUT -1';
+    const color = zoneDrawTarget === 'in' ? '#16a34a' : '#dc2626';
+    drawZoneRect(ctx, rect, label, color);
+  }
+}
+
+function drawZoneRect(ctx, rect, label, color) {
+  if (!rect) return;
+  const [x1, y1, x2, y2] = rect;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+  ctx.globalAlpha = 0.16;
+  ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+  ctx.globalAlpha = 1;
+  ctx.font = '700 13px Inter, sans-serif';
+  ctx.fillText(label, x1 + 8, Math.max(18, y1 - 8));
+  ctx.restore();
+}
+
 let presetsCache = [];
 
 async function fetchPresets() {
@@ -525,6 +847,9 @@ function loadPreset() {
 
   jobConfig.crop_coords = preset.crop_coords || null;
   jobConfig.line_coords = preset.line_coords || null;
+  jobConfig.zone_coords = preset.zone_coords || null;
+  jobConfig.counting_method = preset.counting_method || (jobConfig.zone_coords ? 'zone' : (jobConfig.line_coords ? 'line' : 'none'));
+  jobConfig.zone_dwell_seconds = parseFloat(preset.zone_dwell_seconds) || 3.0;
 
   // Optionally apply resolution if set in preset
   if (preset.rtsp_width) {
@@ -557,6 +882,19 @@ function loadPreset() {
     document.getElementById('line-coords-display').hidden = true;
     document.getElementById('line-counting-check').checked = false;
   }
+
+  if (jobConfig.zone_coords) {
+    document.getElementById('zone-values').textContent =
+      `IN ${formatCoords(jobConfig.zone_coords.in)} | OUT ${formatCoords(jobConfig.zone_coords.out)}`;
+    document.getElementById('zone-coords-display').hidden = false;
+    document.getElementById('zone-counting-check').checked = true;
+  } else {
+    document.getElementById('zone-coords-display').hidden = true;
+    document.getElementById('zone-counting-check').checked = false;
+  }
+
+  updateCountingControls();
+  updateLineStepDesc();
 
   // Warn if resolution mismatch
   const warning = document.getElementById('preset-warning');
@@ -593,7 +931,7 @@ async function deletePreset() {
 }
 
 async function promptSavePreset() {
-  if (!jobConfig.crop_coords && !jobConfig.line_coords) {
+  if (!jobConfig.crop_coords && !jobConfig.line_coords && !jobConfig.zone_coords) {
     showNotification('Nothing to save – configure crop or line first.', 'error');
     return;
   }
@@ -612,6 +950,9 @@ async function promptSavePreset() {
         rtsp_height: jobConfig.rtsp_height,
         crop_coords: jobConfig.crop_coords,
         line_coords: jobConfig.line_coords,
+        counting_method: jobConfig.counting_method,
+        zone_coords: jobConfig.zone_coords,
+        zone_dwell_seconds: jobConfig.zone_dwell_seconds,
       }),
     });
     await fetchPresets();
@@ -629,6 +970,14 @@ async function startJob() {
 
   if (!jobConfig.camera_id) { showNotification('No camera selected.', 'error'); return; }
   if (!jobConfig.model) { showNotification('No model selected.', 'error'); return; }
+  if (jobConfig.counting_method === 'line' && !jobConfig.line_coords) {
+    showNotification('Draw the counting line or choose no counting method.', 'error');
+    return;
+  }
+  if (jobConfig.counting_method === 'zone' && (!jobConfig.zone_coords || !jobConfig.zone_coords.in || !jobConfig.zone_coords.out)) {
+    showNotification('Draw both IN and OUT zones or choose no counting method.', 'error');
+    return;
+  }
 
   const payload = {
     camera_id: jobConfig.camera_id,
@@ -642,9 +991,11 @@ async function startJob() {
     rtsp_buffer_size: jobConfig.rtsp_buffer_size,
     rtsp_reconnect_delay: jobConfig.rtsp_reconnect_delay,
     rtsp_read_timeout: jobConfig.rtsp_read_timeout,
-    shop_id: jobConfig.shop_id,
     crop_coords: jobConfig.crop_coords,
     line_coords: jobConfig.line_coords,
+    counting_method: jobConfig.counting_method,
+    zone_coords: jobConfig.zone_coords,
+    zone_dwell_seconds: jobConfig.zone_dwell_seconds,
   };
 
   try {
@@ -658,8 +1009,6 @@ async function startJob() {
       showNotification('Error: ' + (err.error || 'unknown'), 'error');
       return;
     }
-    if (jobConfig.shop_id) localStorage.setItem('shop_id', jobConfig.shop_id);
-
     showNotification('Job started successfully!', 'success');
     fetchJobs();
     resetWizard();
@@ -675,13 +1024,17 @@ function resetWizard() {
     camera_id: null, model: null, tracker_file: 'bytetrack.yaml',
     conf: 0.25, iou: 0.7, rtsp_width: null, rtsp_height: null,
     rtsp_fps: 15, rtsp_buffer_size: 1, rtsp_reconnect_delay: 3.0,
-    rtsp_read_timeout: 5.0, shop_id: null, crop_coords: null, line_coords: null,
+    rtsp_read_timeout: 5.0, crop_coords: null, line_coords: null,
+    counting_method: 'none', zone_coords: null, zone_dwell_seconds: 3.0,
   });
   // Reset UI
   document.getElementById('crop-coords-display').hidden = true;
   document.getElementById('line-coords-display').hidden = true;
+  document.getElementById('zone-coords-display').hidden = true;
   document.getElementById('crop-area-check').checked = false;
   document.getElementById('line-counting-check').checked = false;
+  document.getElementById('zone-counting-check').checked = false;
+  updateCountingControls();
   document.getElementById('preset-warning').hidden = true;
   goToStep(1);
 }
