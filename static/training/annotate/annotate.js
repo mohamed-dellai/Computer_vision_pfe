@@ -46,6 +46,7 @@ const imageNameEl = document.getElementById("annotator-image-name");
 const imagePosEl = document.getElementById("annotator-image-position");
 const prevBtnEl = document.getElementById("annotator-prev-image");
 const nextBtnEl = document.getElementById("annotator-next-image");
+const deleteImageBtnEl = document.getElementById("delete-image-btn");
 const datasetInfoEl = document.getElementById("dataset-selected-info");
 const renameVersionBtnEl = document.getElementById("rename-version-btn");
 const deleteVersionBtnEl = document.getElementById("delete-version-btn");
@@ -83,6 +84,7 @@ function bindEvents() {
 
   prevBtnEl.addEventListener("click", () => navigateAnnotatorImage(-1));
   nextBtnEl.addEventListener("click", () => navigateAnnotatorImage(1));
+  deleteImageBtnEl.addEventListener("click", deleteSelectedImage);
 
   imageSearchEl.addEventListener("input", onImageSearchInput);
   imageGalleryEl.addEventListener("scroll", onGalleryScroll);
@@ -865,6 +867,14 @@ function navigateAnnotatorImage(delta) {
 }
 
 function updateAnnotatorImageNav() {
+  const hasSelectedImage = Boolean(
+    state.selectedDatasetId &&
+    state.selectedVersionId &&
+    state.selectedImageId &&
+    state.images.some((x) => x.id === state.selectedImageId)
+  );
+  deleteImageBtnEl.disabled = !hasSelectedImage;
+
   if (!state.selectedVersionId) {
     imageNameEl.textContent = "Choose annotation version";
     imagePosEl.textContent = "0 / 0";
@@ -883,6 +893,40 @@ function updateAnnotatorImageNav() {
   imagePosEl.textContent = `${current} / ${total}`;
   prevBtnEl.disabled = total === 0 || current <= 1;
   nextBtnEl.disabled = total === 0 || current >= total;
+}
+
+async function deleteSelectedImage() {
+  if (!state.selectedDatasetId) return t.notify("select a dataset first");
+  if (!state.selectedImageId) return t.notify("select an image first");
+
+  const deletingId = state.selectedImageId;
+  const deletingIdx = state.images.findIndex((x) => x.id === deletingId);
+  const image = deletingIdx >= 0 ? state.images[deletingIdx] : null;
+  const imageName = image ? image.original_name : "selected image";
+  if (!confirm(`Delete "${imageName}" from the dataset and remove all its labels?`)) return;
+
+  try {
+    await flushAutosave();
+
+    const fallbackImage = state.images[deletingIdx + 1] || state.images[deletingIdx - 1] || null;
+    await t.api(`/training/datasets/${state.selectedDatasetId}/images/${deletingId}`, { method: "DELETE" });
+
+    state.selectedImageId = fallbackImage ? fallbackImage.id : null;
+    state.annotations = [];
+    state.selectedBoxIndex = -1;
+    state.imageObj = null;
+    state.pendingAutosave = false;
+    state.lastSavedSignature = null;
+
+    state.datasets = await t.fetchDatasets();
+    renderDatasetSelect();
+    await fetchImages();
+    updateFlowInfo();
+    await refreshAnnotatorData();
+    t.notify("image deleted from dataset");
+  } catch (e) {
+    t.notify(e.message);
+  }
 }
 
 async function refreshAnnotatorData() {

@@ -239,6 +239,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -252,6 +253,21 @@
   font-size: 0.8125rem;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.selected-image-delete-btn {
+  padding-inline: 12px;
 }
 
 .image-name-pill {

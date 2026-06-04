@@ -61,6 +61,12 @@
   cursor: pointer;
 }
 
+.optimizer-hint {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: -8px 0 16px;
+}
+
 .upload-area {
   border: 2px dashed var(--border-color);
   border-radius: 8px;

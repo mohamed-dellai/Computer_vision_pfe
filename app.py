@@ -23,6 +23,7 @@ from routes.integrations import create_integrations_blueprint
 from services.autodistill import GroundedSam2AutodistillService
 from services.training_runner import TrainingRunner
 from services.training_store import TrainingStore
+from services.webhook_service import dispatcher
 
 app = Flask(__name__)
 

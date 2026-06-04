@@ -34,6 +34,9 @@ torchvision
 typing_extensions
 ultralytics
 ultralytics-thop
+onnx
+onnxruntime
+tensorrt-cu12<11
 urllib3
 autodistill
 autodistill-grounding-dino
@@ -52,4 +55,3 @@ pyglet==1.5.29
 PyOpenGL
 PyOpenGL_accelerate
 pyyaml
-

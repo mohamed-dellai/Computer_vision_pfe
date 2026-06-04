@@ -49,10 +49,10 @@
       <div class="card upload-card">
         <h3>Upload New Model</h3>
         <div class="upload-area">
-          <input type="file" id="model-file" accept=".pt,.onnx" hidden/>
+          <input type="file" id="model-file" accept=".pt,.onnx,.engine" hidden/>
           <label for="model-file" class="upload-label">
             <span class="icon">📦</span>
-            <span>Click to select .pt or .onnx file</span>
+            <span>Click to select .pt, .onnx, or .engine file</span>
           </label>
           <div id="file-name" class="file-name"></div>
           <button onclick="uploadModel()" class="btn btn-primary" style="margin-top: 16px; width: 100%;">Upload Model</button>
@@ -71,6 +71,7 @@
       <!-- Optimizer Card -->
       <div class="card" style="grid-column: 1 / -1;">
         <h3>Optimize Model</h3>
+        <p class="optimizer-hint">Exports use Ultralytics YOLO. Select a .pt model as the source.</p>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px;">
           <div class="form-group">
             <label>Source Model</label>
@@ -82,7 +83,7 @@
             <label>Target Format</label>
             <select id="opt-target-select">
               <option value="onnx">ONNX</option>
-              <option value="tensorrt">TensorRT (engine)</option>
+              <option value="engine">TensorRT (.engine)</option>
             </select>
           </div>
           <div class="form-group">

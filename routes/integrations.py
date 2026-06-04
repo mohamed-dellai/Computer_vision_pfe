@@ -49,7 +49,7 @@ def create_integrations_blueprint():
             return jsonify({'ok': False, 'error': 'api_url is required'}), 400
 
         payload = {
-            'id': external_id,
+            'shopId': external_id,
             'name': 'connection-test',
             'class_name': 'test-object',
             'object_id': 999,
@@ -61,6 +61,7 @@ def create_integrations_blueprint():
         }
 
         try:
+            print(f"Sending test payload to {api_url}: {payload}")
             resp = requests.post(api_url, data=payload, timeout=5.0)
             body = resp.text[:1000] if resp.text else ''
             

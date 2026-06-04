@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, request
 import os
-import yaml
 from werkzeug.utils import secure_filename
-from services.model_optimizer import ModelOptimizer
+from services.model_optimizer import ModelOptimizer, normalize_export_target
 
 def create_models_blueprint(models_dir, allowed_extensions, available_models_func):
     bp = Blueprint('models', __name__, url_prefix='/models')
@@ -22,7 +21,8 @@ def create_models_blueprint(models_dir, allowed_extensions, available_models_fun
         if file.filename == '':
             return jsonify({'error': 'no file selected'}), 400
         if not allowed_file(file.filename):
-            return jsonify({'error': 'only .pt and .onnx files allowed'}), 400
+            allowed = ', '.join(f'.{ext}' for ext in sorted(allowed_extensions))
+            return jsonify({'error': f'only {allowed} files allowed'}), 400
         filename = secure_filename(file.filename)
         filepath = os.path.join(models_dir, filename)
         file.save(filepath)
@@ -32,26 +32,71 @@ def create_models_blueprint(models_dir, allowed_extensions, available_models_fun
     def optimize_model():
         data = request.json or {}
         source = data.get('source')
-        target = (data.get('target') or '').lower()
-        imgsz = data.get('imgsz', 640)
-        opset = int(data.get('opset', 12))
-        dynamic = bool(data.get('dynamic', False))
-        half = bool(data.get('half', False))
+        try:
+            target = normalize_export_target(data.get('target') or 'onnx')
+            imgsz = _parse_imgsz(data.get('imgsz', 640))
+            opset = _parse_int(data.get('opset', 12), 'opset', minimum=7)
+            dynamic = _parse_bool(data.get('dynamic', False))
+            half = _parse_bool(data.get('half', False))
+            simplify = _parse_bool(data.get('simplify', False))
+            device = data.get('device')
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
 
         if not source:
             return jsonify({'error': 'source field required'}), 400
-        if target not in ('onnx', 'tensorrt'):
-            return jsonify({'error': 'target must be "onnx" or "tensorrt"'}), 400
 
-        try:
-            from services.model_optimizer import ModelOptimizer
-        except Exception as e:
-            return jsonify({'error': f'optimizer unavailable: {e}'}), 500
         try:
             optimizer = ModelOptimizer(models_dir)
-            out_name = optimizer.optimize(source, target, imgsz=imgsz, opset=opset, dynamic=dynamic, half=half)
-            return jsonify({'message': 'model optimized', 'filename': out_name, 'format': target}), 200
+            result = optimizer.optimize(
+                source,
+                target,
+                imgsz=imgsz,
+                opset=opset,
+                dynamic=dynamic,
+                half=half,
+                simplify=simplify,
+                device=device,
+            )
+            return jsonify({
+                'message': 'model exported',
+                'filename': result['filename'],
+                'format': result['format'],
+                'format_label': result['format_label'],
+            }), 200
+        except (FileNotFoundError, ValueError) as e:
+            return jsonify({'error': str(e)}), 400
+        except RuntimeError as e:
+            return jsonify({'error': str(e)}), 500
         except Exception as e:
-            return jsonify({'error': f'optimization failed: {e}'}), 500
+            return jsonify({'error': f'export failed: {e}'}), 500
 
     return bp
+
+
+def _parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+    return bool(value)
+
+
+def _parse_int(value, name, minimum=None):
+    try:
+        parsed = int(value)
+    except Exception as exc:
+        raise ValueError(f'{name} must be an integer') from exc
+    if minimum is not None and parsed < minimum:
+        raise ValueError(f'{name} must be >= {minimum}')
+    return parsed
+
+
+def _parse_imgsz(value):
+    if isinstance(value, (list, tuple)):
+        if len(value) != 2:
+            raise ValueError('imgsz must be an integer or [height, width]')
+        return [_parse_int(value[0], 'imgsz height', minimum=32), _parse_int(value[1], 'imgsz width', minimum=32)]
+    return _parse_int(value, 'imgsz', minimum=32)

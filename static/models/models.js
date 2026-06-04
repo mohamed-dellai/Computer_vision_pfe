@@ -31,24 +31,33 @@ async function fetchModels(){
       return;
     }
     j.models.forEach(m=>{
+      const ext = modelExtension(m);
       let li = document.createElement('li');
       li.className = 'model-item';
       li.innerHTML = `
         <span class="model-icon">🧠</span>
         <span class="model-name">${m}</span>
-        <span class="model-tag">YOLO</span>
+        <span class="model-tag">${ext || 'model'}</span>
       `;
       s.appendChild(li);
-      if (optSelect) {
+      if (optSelect && ext === 'pt') {
         const option = document.createElement('option');
         option.value = m;
         option.text = m;
         optSelect.appendChild(option);
       }
     });
+    if (optSelect && optSelect.options.length === 0) {
+      optSelect.innerHTML = '<option disabled selected>No .pt models available</option>';
+    }
   } catch (e) {
     console.error("Error fetching models:", e);
   }
+}
+
+function modelExtension(filename) {
+  const match = String(filename || '').toLowerCase().match(/\.([^.]+)$/);
+  return match ? match[1] : '';
 }
 
 async function uploadModel(){
@@ -109,11 +118,11 @@ async function optimizeModel(){
     });
     const j = await r.json();
     if(r.ok){
-      status.textContent = `Optimized: ${j.filename} (${j.format})`;
+      status.textContent = `Exported: ${j.filename} (${j.format_label || j.format})`;
       status.className = 'status-text success';
       setTimeout(fetchModels, 500);
     } else {
-      status.textContent = `Error: ${j.error || 'Optimization failed'}`;
+      status.textContent = `Error: ${j.error || 'Export failed'}`;
       status.className = 'status-text error';
     }
   } catch (e) {
